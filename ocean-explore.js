@@ -1,51 +1,92 @@
-// 探究式学习系统
+// 精细的探究式学习系统 - 第1关：观察与发现
 class OceanExploreSystem {
     constructor() {
         this.canvas = document.getElementById('explore-canvas');
         this.ctx = this.canvas.getContext('2d');
         this.ctx.imageSmoothingEnabled = false;
         
-        // 当前状态
-        this.currentChapter = 0;
-        this.currentTask = 0;
-        this.completedChapters = [];
+        // 动画状态
+        this.animationFrame = 0;
+        this.isAnimating = false;
         
-        // 章节进度
-        this.chapterProgress = {
-            1: { unlocked: true, completed: false, tasks: [] },
-            2: { unlocked: false, completed: false, tasks: [] },
-            3: { unlocked: false, completed: false, tasks: [] },
-            4: { unlocked: false, completed: false, tasks: [] }
+        // 科考船状态
+        this.ship = {
+            x: 100,
+            y: 250,
+            targetX: 100,
+            targetY: 250,
+            speed: 2,
+            angle: 0
         };
         
-        // 观察数据
+        // 洋流粒子系统
+        this.particles = [];
+        this.initParticles();
+        
+        // 温度数据
+        this.temperatureData = [];
+        this.currentTemp = null;
+        this.targetTemp = null;
+        this.tempTransition = 0;
+        
+        // 当前任务
+        this.currentTask = 0;
+        this.taskStage = 'intro'; // intro, interact, think, summary
         this.observations = [];
+        this.measurements = { warm: false, cold: false, normal: false };
         
         this.init();
     }
     
     init() {
         this.setupEventListeners();
-        this.loadProgress();
-        this.showChapterSelect();
+        this.startAnimation();
+        this.showTask(0);
+    }
+    
+    initParticles() {
+        // 暖流粒子（红色区域）
+        for (let i = 0; i < 50; i++) {
+            this.particles.push({
+                x: 100 + Math.random() * 250,
+                y: Math.random() * 500,
+                vx: 1 + Math.random(),
+                vy: (Math.random() - 0.5) * 0.5,
+                type: 'warm',
+                size: 2 + Math.random() * 2
+            });
+        }
+        
+        // 寒流粒子（蓝色区域）
+        for (let i = 0; i < 50; i++) {
+            this.particles.push({
+                x: 550 + Math.random() * 250,
+                y: Math.random() * 500,
+                vx: -1 - Math.random(),
+                vy: (Math.random() - 0.5) * 0.5,
+                type: 'cold',
+                size: 2 + Math.random() * 2
+            });
+        }
     }
     
     setupEventListeners() {
         // 返回按钮
         document.getElementById('back-btn').addEventListener('click', () => {
-            if (confirm('确定要返回吗？当前进度将不会保存。')) {
+            if (confirm('确定要返回吗？')) {
                 window.location.href = 'ocean-select.html';
             }
         });
         
-        // 章节卡片点击
-        document.querySelectorAll('.chapter-card').forEach(card => {
-            card.addEventListener('click', () => {
-                const chapter = parseInt(card.dataset.chapter);
-                if (this.chapterProgress[chapter].unlocked) {
-                    this.startChapter(chapter);
-                }
-            });
+        // Canvas点击事件
+        this.canvas.addEventListener('click', (e) => {
+            if (this.taskStage !== 'interact') return;
+            
+            const rect = this.canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            this.handleCanvasClick(x, y);
         });
         
         // 提交答案
@@ -57,394 +98,380 @@ class OceanExploreSystem {
         document.getElementById('next-task-btn').addEventListener('click', () => {
             this.nextTask();
         });
-        
-        // 下一章
-        document.getElementById('next-chapter-btn').addEventListener('click', () => {
-            this.nextChapter();
-        });
-        
-        // 返回章节选择
-        document.getElementById('back-to-chapters-btn').addEventListener('click', () => {
-            this.showChapterSelect();
-        });
     }
     
-    showChapterSelect() {
-        document.getElementById('chapter-select').classList.remove('hidden');
-        document.getElementById('task-screen').classList.add('hidden');
-        document.getElementById('chapter-complete').classList.add('hidden');
-        
-        // 更新章节卡片状态
-        this.updateChapterCards();
+    startAnimation() {
+        this.isAnimating = true;
+        this.animate();
     }
     
-    updateChapterCards() {
-        document.querySelectorAll('.chapter-card').forEach(card => {
-            const chapter = parseInt(card.dataset.chapter);
-            const progress = this.chapterProgress[chapter];
+    animate() {
+        if (!this.isAnimating) return;
+        
+        this.animationFrame++;
+        this.updateParticles();
+        this.updateShip();
+        this.updateTemperature();
+        this.draw();
+        
+        requestAnimationFrame(() => this.animate());
+    }
+    
+    updateParticles() {
+        this.particles.forEach(p => {
+            p.x += p.vx;
+            p.y += p.vy;
             
-            if (progress.unlocked) {
-                card.classList.remove('locked');
+            // 边界检查
+            if (p.type === 'warm') {
+                if (p.x > 350) p.x = 100;
+                if (p.x < 100) p.x = 350;
             } else {
-                card.classList.add('locked');
+                if (p.x < 550) p.x = 800;
+                if (p.x > 800) p.x = 550;
             }
+            
+            if (p.y < 0) p.y = 500;
+            if (p.y > 500) p.y = 0;
         });
     }
     
-    startChapter(chapter) {
-        this.currentChapter = chapter;
-        this.currentTask = 0;
-        this.observations = [];
+    updateShip() {
+        // 平滑移动到目标位置
+        const dx = this.ship.targetX - this.ship.x;
+        const dy = this.ship.targetY - this.ship.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
         
-        document.getElementById('chapter-select').classList.add('hidden');
-        document.getElementById('task-screen').classList.remove('hidden');
-        
-        // 更新进度条
-        document.getElementById('progress-fill').style.width = '0%';
-        
-        // 加载章节任务
-        this.loadChapterTasks(chapter);
-        this.showTask(0);
-    }
-    
-    loadChapterTasks(chapter) {
-        // 第1章：观察与发现
-        if (chapter === 1) {
-            this.tasks = [
-                {
-                    title: '任务1：测量海水温度',
-                    type: 'measurement',
-                    instruction: '点击地图上不同颜色的海域，测量它们的温度',
-                    question: '你发现红色海域和蓝色海域的温度有什么不同？',
-                    summary: '通过测量，你发现：<br>• 红色海域的水温比周围海水<strong>高</strong><br>• 蓝色海域的水温比周围海水<strong>低</strong><br>• 这就是<strong>暖流</strong>和<strong>寒流</strong>的温度特征'
-                },
-                {
-                    title: '任务2：观察洋流流向',
-                    type: 'observation',
-                    instruction: '观察地图上洋流的流动方向（箭头表示）',
-                    question: '暖流和寒流的流向有什么规律？',
-                    summary: '通过观察，你发现：<br>• 暖流从<strong>低纬度</strong>流向<strong>高纬度</strong><br>• 寒流从<strong>高纬度</strong>流向<strong>低纬度</strong><br>• 洋流的流向与温度变化有关'
-                },
-                {
-                    title: '任务3：推理洋流定义',
-                    type: 'reasoning',
-                    instruction: '根据前面的观察，思考暖流和寒流的定义',
-                    question: '你能用自己的话定义什么是暖流和寒流吗？',
-                    summary: '你总结出：<br>• <strong>暖流</strong>：从水温高的海区流向水温低的海区<br>• <strong>寒流</strong>：从水温低的海区流向水温高的海区<br>• 关键是<strong>相对温度</strong>，而不是绝对温度'
-                },
-                {
-                    title: '任务4：预测气候影响',
-                    type: 'prediction',
-                    instruction: '思考暖流和寒流对沿岸气候的影响',
-                    question: '如果一个地区沿岸有暖流经过，你认为会对气候产生什么影响？',
-                    summary: '你推理出：<br>• 暖流会使沿岸气候<strong>增温加湿</strong><br>• 寒流会使沿岸气候<strong>降温减湿</strong><br>• 洋流是影响气候的重要因素'
-                },
-                {
-                    title: '任务5：案例验证',
-                    type: 'case',
-                    instruction: '用真实案例验证你的推理',
-                    question: '英国和加拿大纽芬兰岛纬度相近，但英国更温暖。根据洋流知识，你能解释原因吗？',
-                    summary: '案例分析：<br>• 英国受<strong>北大西洋暖流</strong>影响，气候温暖湿润<br>• 纽芬兰受<strong>拉布拉多寒流</strong>影响，气候寒冷<br>• 这验证了洋流对气候的重要影响'
-                }
-            ];
-        }
-        // 其他章节待实现
-    }
-    
-    showTask(taskIndex) {
-        if (taskIndex >= this.tasks.length) {
-            this.completeChapter();
-            return;
-        }
-        
-        this.currentTask = taskIndex;
-        const task = this.tasks[taskIndex];
-        
-        // 更新UI
-        document.getElementById('task-title').textContent = task.title;
-        document.getElementById('task-number').textContent = `${taskIndex + 1}/${this.tasks.length}`;
-        document.getElementById('thinking-question').textContent = task.question;
-        document.getElementById('chapter-title').textContent = `第${this.currentChapter}章：任务${taskIndex + 1}`;
-        
-        // 更新进度条
-        const progress = ((taskIndex) / this.tasks.length) * 100;
-        document.getElementById('progress-fill').style.width = progress + '%';
-        
-        // 清空输入
-        document.getElementById('answer-input').value = '';
-        
-        // 隐藏总结，显示思考区
-        document.getElementById('summary-area').classList.add('hidden');
-        document.getElementById('thinking-area').classList.remove('hidden');
-        
-        // 清空观察记录
-        document.getElementById('observation-log').innerHTML = '';
-        
-        // 根据任务类型加载互动内容
-        this.loadTaskInteraction(task);
-    }
-    
-    loadTaskInteraction(task) {
-        const controlsPanel = document.getElementById('controls-panel');
-        
-        if (task.type === 'measurement') {
-            // 测量任务
-            controlsPanel.innerHTML = `
-                <h4>🌡️ 温度计</h4>
-                <p style="font-size: 13px; color: #64748b; margin-bottom: 15px;">
-                    ${task.instruction}
-                </p>
-                <div class="control-item">
-                    <div id="temp-display" style="background: #dbeafe; padding: 15px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 12px; color: #1e40af;">当前测量</div>
-                        <div style="font-size: 24px; color: #1e3a8a; font-weight: bold;">--°C</div>
-                    </div>
-                </div>
-                <div class="control-item">
-                    <button onclick="game.measureTemperature('warm')">测量红色海域</button>
-                </div>
-                <div class="control-item">
-                    <button onclick="game.measureTemperature('cold')">测量蓝色海域</button>
-                </div>
-                <div class="control-item">
-                    <button onclick="game.measureTemperature('normal')">测量周围海水</button>
-                </div>
-            `;
-            
-            this.drawMeasurementMap();
-        } else if (task.type === 'observation') {
-            // 观察任务
-            controlsPanel.innerHTML = `
-                <h4>🔍 观察工具</h4>
-                <p style="font-size: 13px; color: #64748b; margin-bottom: 15px;">
-                    ${task.instruction}
-                </p>
-                <div class="control-item">
-                    <button onclick="game.observeFlow('north')">观察北半球</button>
-                </div>
-                <div class="control-item">
-                    <button onclick="game.observeFlow('south')">观察南半球</button>
-                </div>
-            `;
-            
-            this.drawFlowMap();
-        } else {
-            // 其他类型任务
-            controlsPanel.innerHTML = `
-                <h4>💭 思考提示</h4>
-                <p style="font-size: 13px; color: #64748b; line-height: 1.6;">
-                    ${task.instruction}
-                </p>
-            `;
-            
-            this.drawThinkingMap();
+        if (dist > 1) {
+            this.ship.x += (dx / dist) * this.ship.speed;
+            this.ship.y += (dy / dist) * this.ship.speed;
+            this.ship.angle = Math.atan2(dy, dx);
         }
     }
     
-    drawMeasurementMap() {
+    updateTemperature() {
+        if (this.targetTemp !== null && this.tempTransition < 1) {
+            this.tempTransition += 0.02;
+            if (this.tempTransition >= 1) {
+                this.currentTemp = this.targetTemp;
+                this.tempTransition = 1;
+            }
+        }
+    }
+    
+    draw() {
+        // 清空画布
         this.ctx.fillStyle = '#0ea5e9';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
-        // 绘制暖流区域（红色）
-        this.ctx.fillStyle = 'rgba(239, 68, 68, 0.4)';
+        // 绘制洋流区域
+        this.drawCurrentZones();
+        
+        // 绘制粒子
+        this.drawParticles();
+        
+        // 绘制科考船
+        this.drawShip();
+        
+        // 绘制温度计（如果正在测量）
+        if (this.taskStage === 'interact' && this.currentTemp !== null) {
+            this.drawThermometer();
+        }
+    }
+    
+    drawCurrentZones() {
+        // 暖流区域（红色）
+        const warmGradient = this.ctx.createLinearGradient(100, 0, 350, 0);
+        warmGradient.addColorStop(0, 'rgba(239, 68, 68, 0.3)');
+        warmGradient.addColorStop(1, 'rgba(239, 68, 68, 0.5)');
+        this.ctx.fillStyle = warmGradient;
         this.ctx.fillRect(100, 100, 250, 300);
+        
+        // 边框
         this.ctx.strokeStyle = '#ef4444';
         this.ctx.lineWidth = 3;
         this.ctx.strokeRect(100, 100, 250, 300);
         
         // 标签
         this.ctx.fillStyle = 'white';
-        this.ctx.font = 'bold 20px Arial';
+        this.ctx.font = 'bold 24px Arial';
         this.ctx.textAlign = 'center';
-        this.ctx.fillText('红色海域', 225, 260);
+        this.ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        this.ctx.shadowBlur = 4;
+        this.ctx.fillText('暖流区域', 225, 260);
+        this.ctx.shadowBlur = 0;
         
-        // 绘制寒流区域（蓝色）
-        this.ctx.fillStyle = 'rgba(59, 130, 246, 0.4)';
+        // 寒流区域（蓝色）
+        const coldGradient = this.ctx.createLinearGradient(550, 0, 800, 0);
+        coldGradient.addColorStop(0, 'rgba(59, 130, 246, 0.3)');
+        coldGradient.addColorStop(1, 'rgba(59, 130, 246, 0.5)');
+        this.ctx.fillStyle = coldGradient;
         this.ctx.fillRect(550, 100, 250, 300);
+        
         this.ctx.strokeStyle = '#3b82f6';
         this.ctx.lineWidth = 3;
         this.ctx.strokeRect(550, 100, 250, 300);
         
         this.ctx.fillStyle = 'white';
-        this.ctx.fillText('蓝色海域', 675, 260);
+        this.ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        this.ctx.shadowBlur = 4;
+        this.ctx.fillText('寒流区域', 675, 260);
+        this.ctx.shadowBlur = 0;
     }
     
-    drawFlowMap() {
-        this.ctx.fillStyle = '#0ea5e9';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    drawParticles() {
+        this.particles.forEach(p => {
+            this.ctx.fillStyle = p.type === 'warm' 
+                ? `rgba(255, 255, 255, ${0.3 + Math.sin(this.animationFrame * 0.05 + p.x) * 0.2})`
+                : `rgba(200, 230, 255, ${0.3 + Math.sin(this.animationFrame * 0.05 + p.x) * 0.2})`;
+            this.ctx.beginPath();
+            this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            this.ctx.fill();
+        });
+    }
+    
+    drawShip() {
+        this.ctx.save();
+        this.ctx.translate(this.ship.x, this.ship.y);
+        this.ctx.rotate(this.ship.angle);
         
-        // 绘制北半球洋流（顺时针）
-        this.ctx.strokeStyle = '#ef4444';
-        this.ctx.lineWidth = 4;
+        // 船体
+        this.ctx.fillStyle = '#1e293b';
         this.ctx.beginPath();
-        this.ctx.arc(250, 150, 80, 0, Math.PI * 2);
+        this.ctx.moveTo(20, 0);
+        this.ctx.lineTo(-15, -10);
+        this.ctx.lineTo(-15, 10);
+        this.ctx.closePath();
+        this.ctx.fill();
+        
+        // 船舱
+        this.ctx.fillStyle = '#64748b';
+        this.ctx.fillRect(-10, -6, 15, 12);
+        
+        // 烟囱
+        this.ctx.fillStyle = '#ef4444';
+        this.ctx.fillRect(-5, -12, 4, 6);
+        
+        // 波浪效果
+        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        this.ctx.lineWidth = 2;
+        this.ctx.beginPath();
+        this.ctx.arc(0, 0, 25, 0, Math.PI * 2);
         this.ctx.stroke();
         
-        // 箭头
-        this.drawArrow(this.ctx, 330, 150, 350, 150, '#ef4444');
-        
-        this.ctx.fillStyle = 'white';
-        this.ctx.font = 'bold 16px Arial';
-        this.ctx.textAlign = 'center';
-        this.ctx.fillText('北半球', 250, 150);
-        this.ctx.fillText('(顺时针)', 250, 170);
-        
-        // 绘制南半球洋流（逆时针）
-        this.ctx.strokeStyle = '#3b82f6';
-        this.ctx.beginPath();
-        this.ctx.arc(650, 150, 80, 0, Math.PI * 2);
-        this.ctx.stroke();
-        
-        this.drawArrow(this.ctx, 570, 150, 550, 150, '#3b82f6');
-        
-        this.ctx.fillStyle = 'white';
-        this.ctx.fillText('南半球', 650, 150);
-        this.ctx.fillText('(逆时针)', 650, 170);
+        this.ctx.restore();
     }
     
-    drawThinkingMap() {
-        this.ctx.fillStyle = '#0ea5e9';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    drawThermometer() {
+        const x = 750;
+        const y = 50;
+        const width = 60;
+        const height = 200;
         
-        this.ctx.fillStyle = 'white';
-        this.ctx.font = 'bold 24px Arial';
-        this.ctx.textAlign = 'center';
-        this.ctx.fillText('💭 思考时间', this.canvas.width / 2, this.canvas.height / 2);
+        // 温度计背景
+        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        this.ctx.fillRect(x, y, width, height);
+        this.ctx.strokeStyle = '#1e293b';
+        this.ctx.lineWidth = 3;
+        this.ctx.strokeRect(x, y, width, height);
+        
+        // 刻度
+        this.ctx.fillStyle = '#64748b';
+        this.ctx.font = '12px Arial';
+        this.ctx.textAlign = 'right';
+        for (let temp = 0; temp <= 30; temp += 5) {
+            const ty = y + height - (temp / 30) * (height - 40) - 20;
+            this.ctx.fillText(temp + '°C', x - 5, ty + 4);
+            this.ctx.beginPath();
+            this.ctx.moveTo(x, ty);
+            this.ctx.lineTo(x + 10, ty);
+            this.ctx.stroke();
+        }
+        
+        // 水银柱（动画）
+        if (this.currentTemp !== null) {
+            const currentDisplay = this.currentTemp * this.tempTransition;
+            const fillHeight = (currentDisplay / 30) * (height - 40);
+            
+            const gradient = this.ctx.createLinearGradient(x, y + height, x, y + height - fillHeight);
+            if (this.currentTemp > 20) {
+                gradient.addColorStop(0, '#ef4444');
+                gradient.addColorStop(1, '#f87171');
+            } else {
+                gradient.addColorStop(0, '#3b82f6');
+                gradient.addColorStop(1, '#60a5fa');
+            }
+            
+            this.ctx.fillStyle = gradient;
+            this.ctx.fillRect(x + 15, y + height - fillHeight - 20, 30, fillHeight);
+            
+            // 当前温度显示
+            this.ctx.fillStyle = '#1e293b';
+            this.ctx.font = 'bold 20px Arial';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText(currentDisplay.toFixed(1) + '°C', x + width / 2, y + height + 25);
+        }
     }
     
-    drawArrow(ctx, fromX, fromY, toX, toY, color) {
-        const headlen = 15;
-        const angle = Math.atan2(toY - fromY, toX - fromX);
-        
-        ctx.strokeStyle = color;
-        ctx.fillStyle = color;
-        ctx.lineWidth = 3;
-        
-        ctx.beginPath();
-        ctx.moveTo(fromX, fromY);
-        ctx.lineTo(toX, toY);
-        ctx.stroke();
-        
-        ctx.beginPath();
-        ctx.moveTo(toX, toY);
-        ctx.lineTo(toX - headlen * Math.cos(angle - Math.PI / 6), toY - headlen * Math.sin(angle - Math.PI / 6));
-        ctx.lineTo(toX - headlen * Math.cos(angle + Math.PI / 6), toY - headlen * Math.sin(angle + Math.PI / 6));
-        ctx.closePath();
-        ctx.fill();
+    handleCanvasClick(x, y) {
+        // 检查点击的是哪个区域
+        if (x >= 100 && x <= 350 && y >= 100 && y <= 400) {
+            // 暖流区域
+            this.measureArea('warm', x, y);
+        } else if (x >= 550 && x <= 800 && y >= 100 && y <= 400) {
+            // 寒流区域
+            this.measureArea('cold', x, y);
+        } else {
+            // 普通海域
+            this.measureArea('normal', x, y);
+        }
     }
     
-    measureTemperature(type) {
+    measureArea(type, x, y) {
+        // 移动船到点击位置
+        this.ship.targetX = x;
+        this.ship.targetY = y;
+        
+        // 设置目标温度
         const temps = {
-            warm: { temp: 28, desc: '红色海域温度：28°C（比周围海水高8°C）' },
-            cold: { temp: 5, desc: '蓝色海域温度：5°C（比周围海水低15°C）' },
-            normal: { temp: 20, desc: '周围海水温度：20°C（基准温度）' }
+            warm: 28,
+            cold: 5,
+            normal: 20
         };
         
-        const data = temps[type];
-        document.querySelector('#temp-display div:last-child').textContent = data.temp + '°C';
+        this.targetTemp = temps[type];
+        this.tempTransition = 0;
         
-        this.addObservation(data.desc);
+        // 记录测量
+        setTimeout(() => {
+            this.measurements[type] = true;
+            this.addObservation(type);
+            
+            // 检查是否完成所有测量
+            if (this.measurements.warm && this.measurements.cold && this.measurements.normal) {
+                this.completeInteraction();
+            }
+        }, 1000);
     }
     
-    observeFlow(hemisphere) {
-        const flows = {
-            north: '北半球洋流呈顺时针方向流动',
-            south: '南半球洋流呈逆时针方向流动'
+    addObservation(type) {
+        const observations = {
+            warm: '📌 暖流区域测量：水温28°C，比周围海水高8°C',
+            cold: '📌 寒流区域测量：水温5°C，比周围海水低15°C',
+            normal: '📌 普通海域测量：水温20°C（基准温度）'
         };
         
-        this.addObservation(flows[hemisphere]);
-    }
-    
-    addObservation(text) {
-        this.observations.push(text);
         const log = document.getElementById('observation-log');
         const item = document.createElement('div');
         item.className = 'observation-item';
-        item.textContent = `📌 ${text}`;
+        item.textContent = observations[type];
+        item.style.opacity = '0';
+        item.style.transform = 'translateY(-10px)';
         log.appendChild(item);
+        
+        // 动画显示
+        setTimeout(() => {
+            item.style.transition = 'all 0.3s ease';
+            item.style.opacity = '1';
+            item.style.transform = 'translateY(0)';
+        }, 10);
+    }
+    
+    completeInteraction() {
+        // 显示思考问题
+        setTimeout(() => {
+            document.getElementById('thinking-area').style.display = 'block';
+            document.getElementById('thinking-area').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('thinking-area').style.transition = 'opacity 0.5s';
+                document.getElementById('thinking-area').style.opacity = '1';
+            }, 10);
+        }, 500);
+    }
+    
+    showTask(taskIndex) {
+        this.currentTask = taskIndex;
+        this.taskStage = 'intro';
+        this.observations = [];
+        this.measurements = { warm: false, cold: false, normal: false };
+        this.currentTemp = null;
+        this.targetTemp = null;
+        
+        // 更新UI
+        document.getElementById('task-title').textContent = '任务1：测量海水温度';
+        document.getElementById('task-number').textContent = '1/5';
+        document.getElementById('thinking-question').textContent = '你发现红色海域和蓝色海域的温度有什么不同？为什么会有这种差异？';
+        document.getElementById('chapter-title').textContent = '第1章：观察与发现';
+        
+        // 清空输入
+        document.getElementById('answer-input').value = '';
+        document.getElementById('observation-log').innerHTML = '';
+        
+        // 显示控制面板
+        const controlsPanel = document.getElementById('controls-panel');
+        controlsPanel.innerHTML = `
+            <h4>🌡️ 温度测量仪</h4>
+            <p style="font-size: 13px; color: #64748b; margin-bottom: 15px; line-height: 1.6;">
+                点击地图上的不同海域，科考船会自动航行到该位置并测量水温。
+            </p>
+            <div style="background: #dbeafe; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                <div style="font-size: 12px; color: #1e40af; margin-bottom: 8px;">测量进度</div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <div id="measure-warm" style="padding: 6px 12px; background: white; border-radius: 6px; font-size: 12px; color: #64748b;">
+                        ⭕ 暖流区域
+                    </div>
+                    <div id="measure-cold" style="padding: 6px 12px; background: white; border-radius: 6px; font-size: 12px; color: #64748b;">
+                        ⭕ 寒流区域
+                    </div>
+                    <div id="measure-normal" style="padding: 6px 12px; background: white; border-radius: 6px; font-size: 12px; color: #64748b;">
+                        ⭕ 普通海域
+                    </div>
+                </div>
+            </div>
+            <div style="background: #fef3c7; padding: 12px; border-radius: 8px; font-size: 12px; color: #92400e; line-height: 1.6;">
+                💡 提示：完成所有三个区域的测量后，思考它们的温度差异。
+            </div>
+        `;
+        
+        // 隐藏思考区和总结区
+        document.getElementById('thinking-area').style.display = 'none';
+        document.getElementById('summary-area').classList.add('hidden');
+        
+        // 开始互动阶段
+        this.taskStage = 'interact';
+        
+        // 更新进度条
+        document.getElementById('progress-fill').style.width = '0%';
     }
     
     submitAnswer() {
         const answer = document.getElementById('answer-input').value.trim();
         
-        if (answer.length < 10) {
-            alert('请写下更详细的想法（至少10个字）');
+        if (answer.length < 15) {
+            alert('请写下更详细的想法（至少15个字）');
             return;
         }
         
         // 显示总结
-        const task = this.tasks[this.currentTask];
-        document.getElementById('summary-content').innerHTML = task.summary;
-        document.getElementById('thinking-area').classList.add('hidden');
+        document.getElementById('summary-content').innerHTML = `
+            通过测量，你发现：<br><br>
+            • 暖流区域的水温（28°C）<strong>比周围海水高</strong><br>
+            • 寒流区域的水温（5°C）<strong>比周围海水低</strong><br>
+            • 这就是<strong>暖流</strong>和<strong>寒流</strong>的温度特征<br><br>
+            <strong>关键概念</strong>：暖流和寒流不是指绝对温度，而是指<strong>相对于周围海水</strong>的温度。
+        `;
+        
+        document.getElementById('thinking-area').style.display = 'none';
         document.getElementById('summary-area').classList.remove('hidden');
         
-        // 记录完成
-        this.chapterProgress[this.currentChapter].tasks.push({
-            taskIndex: this.currentTask,
-            answer: answer,
-            observations: [...this.observations]
-        });
+        // 更新进度
+        document.getElementById('progress-fill').style.width = '20%';
+        
+        this.taskStage = 'summary';
     }
     
     nextTask() {
-        this.showTask(this.currentTask + 1);
-    }
-    
-    completeChapter() {
-        this.chapterProgress[this.currentChapter].completed = true;
-        
-        // 解锁下一章
-        if (this.currentChapter < 4) {
-            this.chapterProgress[this.currentChapter + 1].unlocked = true;
-        }
-        
-        // 保存进度
-        this.saveProgress();
-        
-        // 显示完成界面
-        document.getElementById('task-screen').classList.add('hidden');
-        document.getElementById('chapter-complete').classList.remove('hidden');
-        
-        // 生成学习总结
-        this.generateLearningSummary();
-        
-        // 更新进度条
-        document.getElementById('progress-fill').style.width = '100%';
-    }
-    
-    generateLearningSummary() {
-        const summaries = {
-            1: `
-                <ul style="list-style: none; padding: 0;">
-                    <li style="margin-bottom: 12px;">✅ 理解了暖流和寒流的温度特征</li>
-                    <li style="margin-bottom: 12px;">✅ 掌握了洋流的流向规律</li>
-                    <li style="margin-bottom: 12px;">✅ 能够定义暖流和寒流的概念</li>
-                    <li style="margin-bottom: 12px;">✅ 了解了洋流对气候的影响</li>
-                    <li style="margin-bottom: 12px;">✅ 学会用洋流知识解释实际现象</li>
-                </ul>
-            `
-        };
-        
-        document.getElementById('learning-summary').innerHTML = summaries[this.currentChapter] || '恭喜完成本章学习！';
-    }
-    
-    nextChapter() {
-        if (this.currentChapter < 4 && this.chapterProgress[this.currentChapter + 1].unlocked) {
-            this.startChapter(this.currentChapter + 1);
-        } else {
-            this.showChapterSelect();
-        }
-    }
-    
-    saveProgress() {
-        localStorage.setItem('oceanExploreProgress', JSON.stringify(this.chapterProgress));
-    }
-    
-    loadProgress() {
-        const saved = localStorage.getItem('oceanExploreProgress');
-        if (saved) {
-            this.chapterProgress = JSON.parse(saved);
-        }
+        alert('第2-5个任务正在开发中，敬请期待！');
     }
 }
 
@@ -452,4 +479,32 @@ class OceanExploreSystem {
 let game;
 window.addEventListener('DOMContentLoaded', () => {
     game = new OceanExploreSystem();
+    
+    // 监听测量进度
+    setInterval(() => {
+        if (game.measurements.warm) {
+            const el = document.getElementById('measure-warm');
+            if (el) {
+                el.style.background = '#dcfce7';
+                el.style.color = '#065f46';
+                el.textContent = '✅ 暖流区域';
+            }
+        }
+        if (game.measurements.cold) {
+            const el = document.getElementById('measure-cold');
+            if (el) {
+                el.style.background = '#dbeafe';
+                el.style.color = '#1e40af';
+                el.textContent = '✅ 寒流区域';
+            }
+        }
+        if (game.measurements.normal) {
+            const el = document.getElementById('measure-normal');
+            if (el) {
+                el.style.background = '#e0f2fe';
+                el.style.color = '#0369a1';
+                el.textContent = '✅ 普通海域';
+            }
+        }
+    }, 100);
 });
