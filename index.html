@@ -34,51 +34,98 @@
 
         <!-- 游戏主区域 -->
         <main class="game-main">
-            <!-- 开始界面 -->
-            <div id="start-screen" class="start-screen">
-                <div class="start-content">
+            <!-- 游戏大厅 -->
+            <div id="game-lobby" class="game-lobby">
+                <div class="lobby-content">
                     <h1 class="game-title">🌍 动物地理大冒险 🦁</h1>
-                    <div class="game-description">
-                        <h2>游戏说明</h2>
-                        <ul>
-                            <li>🎮 使用方向键 ↑↓←→ 控制动物移动</li>
-                            <li>📚 碰到障碍物会触发地理知识问答</li>
-                            <li>⏱️ 每题限时10秒，答错扣1点生命值</li>
-                            <li>🗺️ 完成3张地图即可通关</li>
-                            <li>❤️ 生命值归零游戏结束</li>
-                        </ul>
+                    <p class="game-subtitle">探索世界，学习地理知识</p>
+                    <div class="lobby-menu">
+                        <button class="menu-btn" id="start-game-menu-btn">
+                            <span class="btn-icon">🎮</span>
+                            <span class="btn-text">开始游戏</span>
+                        </button>
+                        <button class="menu-btn" id="game-rules-btn">
+                            <span class="btn-icon">�</span>
+                            <span class="btn-text">游戏说明</span>
+                        </button>
                     </div>
-                    <div class="animal-selection">
-                        <h2>选择你的动物伙伴</h2>
-                        <div class="animal-cards">
-                            <div class="animal-card" data-animal="penguin">
-                                <div class="animal-icon">🐧</div>
-                                <h3>企鹅</h3>
-                                <p>探索南极冰原</p>
-                            </div>
-                            <div class="animal-card" data-animal="panda">
-                                <div class="animal-icon">🐼</div>
-                                <h3>大熊猫</h3>
-                                <p>穿越竹林秘境</p>
-                            </div>
-                            <div class="animal-card" data-animal="camel">
-                                <div class="animal-icon">🐫</div>
-                                <h3>骆驼</h3>
-                                <p>横跨沙漠绿洲</p>
-                            </div>
-                            <div class="animal-card" data-animal="kangaroo">
-                                <div class="animal-icon">🦘</div>
-                                <h3>袋鼠</h3>
-                                <p>跳跃澳洲内陆</p>
-                            </div>
-                            <div class="animal-card" data-animal="polar_bear">
-                                <div class="animal-icon">🐻‍❄️</div>
-                                <h3>北极熊</h3>
-                                <p>征服北极冰原</p>
-                            </div>
+                </div>
+            </div>
+
+            <!-- 动物选择界面 -->
+            <div id="animal-selection-screen" class="modal hidden">
+                <div class="selection-content">
+                    <h2>选择你的动物伙伴</h2>
+                    <div class="animal-cards">
+                        <div class="animal-card" data-animal="penguin">
+                            <div class="animal-icon">🐧</div>
+                            <h3>企鹅</h3>
+                            <p>探索南极冰原</p>
+                        </div>
+                        <div class="animal-card" data-animal="panda">
+                            <div class="animal-icon">🐼</div>
+                            <h3>大熊猫</h3>
+                            <p>穿越竹林秘境</p>
+                        </div>
+                        <div class="animal-card" data-animal="camel">
+                            <div class="animal-icon">🐫</div>
+                            <h3>骆驼</h3>
+                            <p>横跨沙漠绿洲</p>
+                        </div>
+                        <div class="animal-card" data-animal="kangaroo">
+                            <div class="animal-icon">🦘</div>
+                            <h3>袋鼠</h3>
+                            <p>跳跃澳洲内陆</p>
+                        </div>
+                        <div class="animal-card" data-animal="polar_bear">
+                            <div class="animal-icon">🐻‍❄️</div>
+                            <h3>北极熊</h3>
+                            <p>征服北极冰原</p>
                         </div>
                     </div>
-                    <button class="start-btn" id="start-game-btn">开始冒险</button>
+                    <div class="selection-buttons">
+                        <button class="back-btn" id="back-to-lobby-btn">返回</button>
+                        <button class="confirm-btn" id="confirm-animal-btn" disabled>确认选择</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 游戏说明界面 -->
+            <div id="game-rules-screen" class="modal hidden">
+                <div class="rules-content">
+                    <h2>📖 游戏说明</h2>
+                    <div class="rules-section">
+                        <h3>🎯 游戏目标</h3>
+                        <p>选择你喜欢的动物，穿越3张不同的地图，回答地理知识问题，完成冒险之旅！</p>
+                    </div>
+                    <div class="rules-section">
+                        <h3>🎮 操作方法</h3>
+                        <ul>
+                            <li>使用方向键 <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> 控制动物移动</li>
+                            <li>碰到障碍物会触发地理知识问答</li>
+                        </ul>
+                    </div>
+                    <div class="rules-section">
+                        <h3>⚡ 游戏规则</h3>
+                        <ul>
+                            <li>⏱️ 每题限时10秒，超时视为答错</li>
+                            <li>❤️ 初始生命值10点，答错扣1点</li>
+                            <li>🗺️ 完成3张地图即可通关</li>
+                            <li>💀 生命值归零游戏结束</li>
+                        </ul>
+                    </div>
+                    <div class="rules-section">
+                        <h3>🦁 动物伙伴</h3>
+                        <p>每种动物都有独特的栖息地和冒险路线：</p>
+                        <ul>
+                            <li>🐧 企鹅 - 南极冰原探险</li>
+                            <li>🐼 大熊猫 - 竹林山谷之旅</li>
+                            <li>🐫 骆驼 - 沙漠绿洲穿越</li>
+                            <li>🦘 袋鼠 - 澳洲内陆冒险</li>
+                            <li>🐻‍❄️ 北极熊 - 北极冰原征服</li>
+                        </ul>
+                    </div>
+                    <button class="back-btn" id="back-from-rules-btn">返回大厅</button>
                 </div>
             </div>
 

@@ -730,17 +730,36 @@ class GameState {
     }
     
     init() {
-        // 设置开始界面的事件监听
-        this.setupStartScreen();
+        // 设置游戏大厅的事件监听
+        this.setupLobby();
         
         // 设置游戏事件监听器
         this.setupEventListeners();
     }
     
-    setupStartScreen() {
-        const startScreen = document.getElementById('start-screen');
-        const startBtn = document.getElementById('start-game-btn');
+    setupLobby() {
+        const gameLobby = document.getElementById('game-lobby');
+        const animalSelectionScreen = document.getElementById('animal-selection-screen');
+        const gameRulesScreen = document.getElementById('game-rules-screen');
+        
+        // 游戏大厅 - 开始游戏按钮
+        const startGameMenuBtn = document.getElementById('start-game-menu-btn');
+        startGameMenuBtn.addEventListener('click', () => {
+            gameLobby.classList.add('hidden');
+            animalSelectionScreen.classList.remove('hidden');
+        });
+        
+        // 游戏大厅 - 游戏说明按钮
+        const gameRulesBtn = document.getElementById('game-rules-btn');
+        gameRulesBtn.addEventListener('click', () => {
+            gameLobby.classList.add('hidden');
+            gameRulesScreen.classList.remove('hidden');
+        });
+        
+        // 动物选择界面
         const animalCards = document.querySelectorAll('.animal-card');
+        const confirmAnimalBtn = document.getElementById('confirm-animal-btn');
+        const backToLobbyBtn = document.getElementById('back-to-lobby-btn');
         
         // 动物卡片选择
         animalCards.forEach(card => {
@@ -751,20 +770,19 @@ class GameState {
                 card.classList.add('selected');
                 // 保存选择的动物
                 this.selectedAnimal = card.dataset.animal;
-                // 启用开始按钮
-                startBtn.disabled = false;
+                // 启用确认按钮
+                confirmAnimalBtn.disabled = false;
             });
         });
         
-        // 开始游戏按钮
-        startBtn.disabled = true;
-        startBtn.addEventListener('click', () => {
+        // 确认选择动物并开始游戏
+        confirmAnimalBtn.addEventListener('click', () => {
             if (this.selectedAnimal) {
                 this.currentAnimal = this.selectedAnimal;
                 this.player.animal = this.currentAnimal;
                 
-                // 隐藏开始界面
-                startScreen.classList.add('hidden');
+                // 隐藏动物选择界面
+                animalSelectionScreen.classList.add('hidden');
                 
                 // 生成游戏内容
                 this.generateAnimalContent();
@@ -774,6 +792,23 @@ class GameState {
                 this.gameStarted = true;
                 this.gameLoop();
             }
+        });
+        
+        // 从动物选择返回大厅
+        backToLobbyBtn.addEventListener('click', () => {
+            animalSelectionScreen.classList.add('hidden');
+            gameLobby.classList.remove('hidden');
+            // 重置选择
+            animalCards.forEach(c => c.classList.remove('selected'));
+            this.selectedAnimal = null;
+            confirmAnimalBtn.disabled = true;
+        });
+        
+        // 游戏说明界面 - 返回按钮
+        const backFromRulesBtn = document.getElementById('back-from-rules-btn');
+        backFromRulesBtn.addEventListener('click', () => {
+            gameRulesScreen.classList.add('hidden');
+            gameLobby.classList.remove('hidden');
         });
     }
     
@@ -1028,17 +1063,17 @@ class GameState {
         // 隐藏游戏结束界面
         document.getElementById('game-over').classList.add('hidden');
         
-        // 显示开始界面
-        const startScreen = document.getElementById('start-screen');
-        startScreen.classList.remove('hidden');
+        // 显示游戏大厅
+        const gameLobby = document.getElementById('game-lobby');
+        gameLobby.classList.remove('hidden');
         
         // 重置动物卡片选择状态
         document.querySelectorAll('.animal-card').forEach(card => {
             card.classList.remove('selected');
         });
         
-        // 禁用开始按钮
-        document.getElementById('start-game-btn').disabled = true;
+        // 禁用确认按钮
+        document.getElementById('confirm-animal-btn').disabled = true;
     }
     
     draw() {
