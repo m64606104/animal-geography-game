@@ -147,6 +147,8 @@ class OceanExploreSystem {
     }
     
     startChapter(chapter) {
+        this.currentChapter = chapter;
+        
         // 隐藏章节选择，显示任务界面
         document.getElementById('chapter-select').classList.add('hidden');
         document.getElementById('task-screen').classList.remove('hidden');
@@ -155,6 +157,15 @@ class OceanExploreSystem {
         if (this.particles.length === 0) {
             this.initParticles();
         }
+        
+        // 重置实验状态
+        this.experimentState = {
+            windDirection: 0,
+            windStrength: 0,
+            temperature: 20,
+            salinity: 35,
+            waterRemoved: false
+        };
         
         // 开始动画
         this.startAnimation();
@@ -234,10 +245,16 @@ class OceanExploreSystem {
         this.ctx.fillStyle = '#0ea5e9';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
-        // 根据任务绘制不同内容
-        switch (this.currentTask) {
-            case 0:
-                // 任务1：测温游戏
+        // 根据章节和任务绘制不同内容
+        const chapter = this.currentChapter || 1;
+        const tasks = this.getChapterTasks()[chapter];
+        const task = tasks ? tasks[this.currentTask] : null;
+        
+        if (!task) return;
+        
+        // 根据任务类型绘制
+        switch (task.type) {
+            case 'temperature':
                 this.drawCurrentZones();
                 this.drawParticles();
                 this.drawShip();
@@ -245,23 +262,48 @@ class OceanExploreSystem {
                     this.drawThermometer();
                 }
                 break;
-            case 1:
-                // 任务2：观察流向 - 显示流向箭头动画
-                this.drawTask2FlowDirection();
+            case 'wind':
+                this.drawChapter2Wind();
                 break;
-            case 2:
-                // 任务3：洋流定义 - 显示对比图
-                this.drawTask3Comparison();
+            case 'density':
+                this.drawChapter2Density();
                 break;
-            case 3:
-                // 任务4：气候影响 - 显示气候示意图
-                this.drawTask4Climate();
+            case 'salinity':
+                this.drawChapter2Salinity();
                 break;
-            case 4:
-                // 任务5：案例分析 - 显示世界地图
-                this.drawTask5WorldMap();
+            case 'compensation':
+                this.drawChapter2Compensation();
                 break;
+            case 'observe':
+                // 第1章的观察任务
+                if (chapter === 1) {
+                    if (this.currentTask === 1) this.drawTask2FlowDirection();
+                    else if (this.currentTask === 2) this.drawTask3Comparison();
+                    else if (this.currentTask === 3) this.drawTask4Climate();
+                    else if (this.currentTask === 4) this.drawTask5WorldMap();
+                    else this.drawDefaultScene();
+                } else {
+                    this.drawDefaultScene();
+                }
+                break;
+            default:
+                this.drawDefaultScene();
         }
+    }
+    
+    drawDefaultScene() {
+        // 默认场景：简单的海洋背景
+        const gradient = this.ctx.createLinearGradient(0, 0, 0, 500);
+        gradient.addColorStop(0, '#0ea5e9');
+        gradient.addColorStop(1, '#0284c7');
+        this.ctx.fillStyle = gradient;
+        this.ctx.fillRect(0, 0, 900, 500);
+        
+        // 提示文字
+        this.ctx.fillStyle = 'rgba(255,255,255,0.8)';
+        this.ctx.font = '18px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('请阅读左侧任务说明，思考问题后提交答案', 450, 250);
     }
     
     drawCurrentZones() {
@@ -540,51 +582,30 @@ class OceanExploreSystem {
         this.currentTemp = null;
         this.targetTemp = null;
         
-        // 任务配置 - 每个任务有独立的内容
-        const tasks = [
-            {
-                title: '任务1：测量海水温度',
-                question: '观察你测量的数据，暖流区域和寒流区域的温度有什么特点？它们与普通海水相比有什么不同？',
-                instruction: '点击地图上的不同海域，科考船会自动航行到该位置并测量水温。',
-                hasGame: true
-            },
-            {
-                title: '任务2：观察洋流流向',
-                question: '观察地图上的粒子流动方向：暖流（红色区域）向哪个方向流动？寒流（蓝色区域）呢？这与纬度有什么关系？',
-                instruction: '仔细观察地图上白色粒子的流动方向，暖流区域的粒子向上（高纬度）流动，寒流区域的粒子向下（低纬度）流动。',
-                hasGame: false,
-                hint: '💡 提示：注意粒子的移动方向。暖流从赤道附近流向两极方向，寒流从两极流向赤道方向。'
-            },
-            {
-                title: '任务3：总结洋流定义',
-                question: '根据前两个任务的观察，请用自己的话回答：什么是暖流？什么是寒流？（提示：从温度和流向两个角度思考）',
-                instruction: '结合温度测量和流向观察的结果，尝试给出暖流和寒流的定义。',
-                hasGame: false,
-                hint: '💡 提示：暖流和寒流的"暖"和"寒"是相对于流经海区的温度而言的，不是指绝对温度。'
-            },
-            {
-                title: '任务4：推理气候影响',
-                question: '假设某沿海城市附近有暖流经过，你认为这会对当地气候产生什么影响？如果是寒流呢？请从气温和降水两方面分析。',
-                instruction: '思考：海水温度会影响空气温度，温暖的海水蒸发更多水汽...',
-                hasGame: false,
-                hint: '💡 提示：暖流→海水温度高→空气增温→蒸发旺盛→降水增多；寒流则相反。'
-            },
-            {
-                title: '任务5：案例分析',
-                question: '英国伦敦（51°N）和加拿大纽芬兰岛（49°N）纬度相近，但伦敦冬季平均气温约5°C，而纽芬兰岛约-5°C。请用洋流知识解释这种差异。',
-                instruction: '运用你学到的洋流知识，分析两地气候差异的原因。',
-                hasGame: false,
-                hint: '💡 提示：查看世界洋流分布图，英国附近有什么洋流？纽芬兰附近呢？'
-            }
-        ];
-        
+        // 根据章节获取任务配置
+        const allChapterTasks = this.getChapterTasks();
+        const tasks = allChapterTasks[this.currentChapter || 1] || allChapterTasks[1];
         const task = tasks[taskIndex];
+        
+        if (!task) {
+            this.completeChapter();
+            return;
+        }
+        
+        // 章节标题
+        const chapterTitles = {
+            1: '第1章：观察与发现',
+            2: '第2章：实验探索',
+            3: '第3章：地图探险',
+            4: '第4章：案例分析',
+            5: '第5章：综合探究'
+        };
         
         // 更新UI
         document.getElementById('task-title').textContent = task.title;
-        document.getElementById('task-number').textContent = `${taskIndex + 1}/5`;
+        document.getElementById('task-number').textContent = `${taskIndex + 1}/${tasks.length}`;
         document.getElementById('thinking-question').textContent = task.question;
-        document.getElementById('chapter-title').textContent = `第1章：观察与发现`;
+        document.getElementById('chapter-title').textContent = chapterTitles[this.currentChapter || 1];
         
         // 清空输入
         document.getElementById('answer-input').value = '';
@@ -593,47 +614,8 @@ class OceanExploreSystem {
         // 显示控制面板
         const controlsPanel = document.getElementById('controls-panel');
         
-        if (task.hasGame) {
-            // 任务1：有测温游戏
-            controlsPanel.innerHTML = `
-                <h4>🌡️ 温度测量仪</h4>
-                <p style="font-size: 13px; color: #64748b; margin-bottom: 15px; line-height: 1.6;">
-                    ${task.instruction}
-                </p>
-                <div style="background: #dbeafe; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                    <div style="font-size: 12px; color: #1e40af; margin-bottom: 8px;">测量进度</div>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                        <div id="measure-warm" style="padding: 6px 12px; background: white; border-radius: 6px; font-size: 12px; color: #64748b;">
-                            ⭕ 暖流区域
-                        </div>
-                        <div id="measure-cold" style="padding: 6px 12px; background: white; border-radius: 6px; font-size: 12px; color: #64748b;">
-                            ⭕ 寒流区域
-                        </div>
-                        <div id="measure-normal" style="padding: 6px 12px; background: white; border-radius: 6px; font-size: 12px; color: #64748b;">
-                            ⭕ 普通海域
-                        </div>
-                    </div>
-                </div>
-                <div style="background: #fef3c7; padding: 12px; border-radius: 8px; font-size: 12px; color: #92400e; line-height: 1.6;">
-                    💡 提示：完成所有三个区域的测量后，回答思考问题。
-                </div>
-            `;
-        } else {
-            // 任务2-5：观察或思考题
-            controlsPanel.innerHTML = `
-                <h4>� 任务说明</h4>
-                <p style="font-size: 13px; color: #64748b; margin-bottom: 15px; line-height: 1.6;">
-                    ${task.instruction}
-                </p>
-                <div style="background: #fef3c7; padding: 12px; border-radius: 8px; font-size: 12px; color: #92400e; line-height: 1.6;">
-                    ${task.hint}
-                </div>
-            `;
-            // 非游戏任务直接显示思考区
-            setTimeout(() => {
-                document.getElementById('thinking-area').style.display = 'block';
-            }, 300);
-        }
+        // 根据任务类型显示不同的控制面板
+        this.renderControlPanel(task, controlsPanel);
         
         // 隐藏思考区和总结区
         document.getElementById('thinking-area').style.display = 'none';
@@ -721,21 +703,27 @@ class OceanExploreSystem {
             </div>`
         ];
         
-        document.getElementById('summary-content').innerHTML = knowledgePoints[this.currentTask];
+        // 根据章节获取知识点
+        const allKnowledgePoints = this.getKnowledgePoints();
+        const chapterKnowledge = allKnowledgePoints[this.currentChapter || 1] || allKnowledgePoints[1];
+        
+        document.getElementById('summary-content').innerHTML = chapterKnowledge[this.currentTask] || '<p>继续探索吧！</p>';
         
         document.getElementById('thinking-area').style.display = 'none';
         document.getElementById('summary-area').classList.remove('hidden');
         
         // 更新进度
-        const progress = ((this.currentTask + 1) / 5) * 100;
+        const tasks = this.getChapterTasks()[this.currentChapter || 1];
+        const progress = ((this.currentTask + 1) / tasks.length) * 100;
         document.getElementById('progress-fill').style.width = progress + '%';
         
         this.taskStage = 'summary';
     }
     
     nextTask() {
+        const tasks = this.getChapterTasks()[this.currentChapter || 1];
         const nextTaskIndex = this.currentTask + 1;
-        if (nextTaskIndex < 5) {
+        if (nextTaskIndex < tasks.length) {
             this.showTask(nextTaskIndex);
         } else {
             // 完成所有任务
@@ -747,18 +735,167 @@ class OceanExploreSystem {
         document.getElementById('task-screen').classList.add('hidden');
         document.getElementById('chapter-complete').classList.remove('hidden');
         
-        // 生成学习总结
-        document.getElementById('learning-summary').innerHTML = `
-            <ul style="list-style: none; padding: 0;">
+        // 根据章节生成学习总结
+        const summaries = {
+            1: `<ul style="list-style: none; padding: 0;">
                 <li style="margin-bottom: 12px;">✅ 理解了暖流和寒流的温度特征</li>
                 <li style="margin-bottom: 12px;">✅ 掌握了洋流的流向规律</li>
                 <li style="margin-bottom: 12px;">✅ 能够定义暖流和寒流的概念</li>
                 <li style="margin-bottom: 12px;">✅ 了解了洋流对气候的影响</li>
                 <li style="margin-bottom: 12px;">✅ 学会用洋流知识解释实际现象</li>
-            </ul>
-        `;
+            </ul>`,
+            2: `<ul style="list-style: none; padding: 0;">
+                <li style="margin-bottom: 12px;">✅ 理解了风力对洋流形成的作用</li>
+                <li style="margin-bottom: 12px;">✅ 掌握了温度与海水密度的关系</li>
+                <li style="margin-bottom: 12px;">✅ 了解了盐度对海水密度的影响</li>
+                <li style="margin-bottom: 12px;">✅ 认识了补偿流的形成原理</li>
+                <li style="margin-bottom: 12px;">✅ 能够综合分析洋流的成因</li>
+            </ul>`,
+            3: `<ul style="list-style: none; padding: 0;">
+                <li style="margin-bottom: 12px;">✅ 掌握了北半球洋流的顺时针规律</li>
+                <li style="margin-bottom: 12px;">✅ 理解了南半球洋流的逆时针规律</li>
+                <li style="margin-bottom: 12px;">✅ 了解了赤道洋流的分布特点</li>
+                <li style="margin-bottom: 12px;">✅ 认识了季风洋流的季节变化</li>
+                <li style="margin-bottom: 12px;">✅ 能够总结世界洋流分布规律</li>
+            </ul>`,
+            4: `<ul style="list-style: none; padding: 0;">
+                <li style="margin-bottom: 12px;">✅ 理解了洋流对渔场分布的影响</li>
+                <li style="margin-bottom: 12px;">✅ 学会了利用洋流规划航线</li>
+                <li style="margin-bottom: 12px;">✅ 掌握了洋流对沿岸气候的影响</li>
+                <li style="margin-bottom: 12px;">✅ 能够解释实际地理现象</li>
+                <li style="margin-bottom: 12px;">✅ 学会综合应用洋流知识</li>
+            </ul>`,
+            5: `<ul style="list-style: none; padding: 0;">
+                <li style="margin-bottom: 12px;">✅ 了解了厄尔尼诺现象的成因和影响</li>
+                <li style="margin-bottom: 12px;">✅ 认识了大西洋温盐环流系统</li>
+                <li style="margin-bottom: 12px;">✅ 思考了气候变化对洋流的影响</li>
+                <li style="margin-bottom: 12px;">✅ 学会了设计简单的科学实验</li>
+                <li style="margin-bottom: 12px;">✅ 完成了洋流知识的系统总结</li>
+            </ul>`
+        };
         
+        document.getElementById('learning-summary').innerHTML = summaries[this.currentChapter || 1];
         document.getElementById('progress-fill').style.width = '100%';
+    }
+    
+    // ========== 知识点配置 ==========
+    getKnowledgePoints() {
+        return {
+            1: [
+                // 第1章知识点（已有）
+                `<div style="background: #f0fdf4; padding: 15px; border-radius: 8px; border-left: 4px solid #22c55e;">
+                    <h4 style="color: #166534; margin-bottom: 10px;">📚 知识点：暖流与寒流的温度特征</h4>
+                    <p style="line-height: 1.8; color: #166534;">
+                        • <strong>暖流</strong>的水温<strong>高于</strong>流经海区的水温<br>
+                        • <strong>寒流</strong>的水温<strong>低于</strong>流经海区的水温<br><br>
+                        <strong>关键</strong>：暖流和寒流的"暖"与"寒"是<strong>相对概念</strong>。
+                    </p>
+                </div>`,
+                `<div style="background: #eff6ff; padding: 15px; border-radius: 8px; border-left: 4px solid #3b82f6;">
+                    <h4 style="color: #1e40af; margin-bottom: 10px;">📚 知识点：洋流的流向规律</h4>
+                    <p style="line-height: 1.8; color: #1e40af;">
+                        • <strong>暖流</strong>：从<strong>低纬度流向高纬度</strong><br>
+                        • <strong>寒流</strong>：从<strong>高纬度流向低纬度</strong><br><br>
+                        洋流在全球范围内进行热量的重新分配。
+                    </p>
+                </div>`,
+                `<div style="background: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                    <h4 style="color: #92400e; margin-bottom: 10px;">📚 知识点：暖流与寒流的定义</h4>
+                    <p style="line-height: 1.8; color: #92400e;">
+                        <strong>暖流</strong>：水温比流经海区高，从低纬流向高纬的洋流<br>
+                        <strong>寒流</strong>：水温比流经海区低，从高纬流向低纬的洋流
+                    </p>
+                </div>`,
+                `<div style="background: #fce7f3; padding: 15px; border-radius: 8px; border-left: 4px solid #ec4899;">
+                    <h4 style="color: #9d174d; margin-bottom: 10px;">📚 知识点：洋流对气候的影响</h4>
+                    <p style="line-height: 1.8; color: #9d174d;">
+                        <strong>暖流</strong>：增温增湿（使沿岸气温升高、降水增多）<br>
+                        <strong>寒流</strong>：降温减湿（使沿岸气温降低、降水减少）
+                    </p>
+                </div>`,
+                `<div style="background: #f5f3ff; padding: 15px; border-radius: 8px; border-left: 4px solid #8b5cf6;">
+                    <h4 style="color: #5b21b6; margin-bottom: 10px;">📚 知识点：案例解析</h4>
+                    <p style="line-height: 1.8; color: #5b21b6;">
+                        <strong>英国</strong>：受北大西洋暖流影响，冬季温和<br>
+                        <strong>纽芬兰</strong>：受拉布拉多寒流影响，冬季寒冷<br><br>
+                        同纬度地区，洋流是造成气候差异的重要因素。
+                    </p>
+                </div>`
+            ],
+            2: [
+                // 第2章：实验探索知识点
+                `<div style="background: #e0f2fe; padding: 15px; border-radius: 8px; border-left: 4px solid #0ea5e9;">
+                    <h4 style="color: #0369a1; margin-bottom: 10px;">📚 知识点：风海流</h4>
+                    <p style="line-height: 1.8; color: #0369a1;">
+                        <strong>风海流</strong>是由风力驱动形成的洋流，是表层洋流的主要成因。<br><br>
+                        • 盛行风持续吹拂海面，带动表层海水流动<br>
+                        • 风力越大，洋流流速越快<br>
+                        • 信风带、西风带是形成大洋环流的主要动力
+                    </p>
+                </div>`,
+                `<div style="background: #fce7f3; padding: 15px; border-radius: 8px; border-left: 4px solid #ec4899;">
+                    <h4 style="color: #9d174d; margin-bottom: 10px;">📚 知识点：温度与海水密度</h4>
+                    <p style="line-height: 1.8; color: #9d174d;">
+                        海水密度与温度成<strong>反比</strong>：<br><br>
+                        • 冷水密度大 → 下沉<br>
+                        • 热水密度小 → 上浮<br><br>
+                        这是形成<strong>深层洋流</strong>（温盐环流）的重要原因。
+                    </p>
+                </div>`,
+                `<div style="background: #dbeafe; padding: 15px; border-radius: 8px; border-left: 4px solid #3b82f6;">
+                    <h4 style="color: #1e40af; margin-bottom: 10px;">📚 知识点：盐度与海水密度</h4>
+                    <p style="line-height: 1.8; color: #1e40af;">
+                        海水密度与盐度成<strong>正比</strong>：<br><br>
+                        • 高盐度海水密度大 → 下沉<br>
+                        • 低盐度海水密度小 → 上浮<br><br>
+                        蒸发旺盛的海域盐度高，降水多的海域盐度低。
+                    </p>
+                </div>`,
+                `<div style="background: #f0fdf4; padding: 15px; border-radius: 8px; border-left: 4px solid #22c55e;">
+                    <h4 style="color: #166534; margin-bottom: 10px;">📚 知识点：补偿流</h4>
+                    <p style="line-height: 1.8; color: #166534;">
+                        当一个海域的海水被移走时，周围的海水会流过来补充，形成<strong>补偿流</strong>。<br><br>
+                        • 水平补偿流：周围海水水平流入<br>
+                        • 上升流：深层海水上涌补充<br><br>
+                        上升流带来深层营养物质，形成著名渔场。
+                    </p>
+                </div>`,
+                `<div style="background: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                    <h4 style="color: #92400e; margin-bottom: 10px;">📚 知识点：洋流成因总结</h4>
+                    <p style="line-height: 1.8; color: #92400e;">
+                        洋流形成的主要原因：<br><br>
+                        1. <strong>风力</strong>：盛行风驱动表层海水流动<br>
+                        2. <strong>密度差异</strong>：温度和盐度差异导致海水垂直运动<br>
+                        3. <strong>补偿作用</strong>：海水流走后的补充运动<br>
+                        4. <strong>地转偏向力</strong>：使洋流发生偏转
+                    </p>
+                </div>`
+            ],
+            3: [
+                // 第3章知识点（简化版）
+                `<div style="background: #e0f2fe; padding: 15px; border-radius: 8px;"><h4>📚 北半球洋流规律</h4><p>北半球中低纬度大洋环流呈<strong>顺时针</strong>方向流动。</p></div>`,
+                `<div style="background: #fce7f3; padding: 15px; border-radius: 8px;"><h4>📚 南半球洋流规律</h4><p>南半球中低纬度大洋环流呈<strong>逆时针</strong>方向流动。</p></div>`,
+                `<div style="background: #f0fdf4; padding: 15px; border-radius: 8px;"><h4>📚 赤道洋流</h4><p>受信风影响，赤道附近形成<strong>南北赤道暖流</strong>，自东向西流动。</p></div>`,
+                `<div style="background: #fef3c7; padding: 15px; border-radius: 8px;"><h4>📚 季风洋流</h4><p>北印度洋受季风影响，夏季顺时针、冬季逆时针流动。</p></div>`,
+                `<div style="background: #f5f3ff; padding: 15px; border-radius: 8px;"><h4>📚 洋流分布规律</h4><p>北顺南逆、东寒西暖（中低纬度大陆东岸暖流、西岸寒流）。</p></div>`
+            ],
+            4: [
+                // 第4章知识点（简化版）
+                `<div style="background: #e0f2fe; padding: 15px; border-radius: 8px;"><h4>📚 渔场与洋流</h4><p>寒暖流交汇处，海水扰动带来营养物质，形成大渔场（如北海道渔场）。</p></div>`,
+                `<div style="background: #f0fdf4; padding: 15px; border-radius: 8px;"><h4>📚 航线与洋流</h4><p>顺流航行可节省燃料和时间，逆流则相反。</p></div>`,
+                `<div style="background: #fef3c7; padding: 15px; border-radius: 8px;"><h4>📚 寒流与沙漠</h4><p>寒流降温减湿，使沿岸形成沙漠气候（如阿塔卡马沙漠）。</p></div>`,
+                `<div style="background: #fce7f3; padding: 15px; border-radius: 8px;"><h4>📚 暖流与雾</h4><p>暖流带来的暖湿空气遇冷形成雾，如伦敦"雾都"。</p></div>`,
+                `<div style="background: #f5f3ff; padding: 15px; border-radius: 8px;"><h4>📚 综合应用</h4><p>洋流影响气候、渔业、航运、旅游等多个领域。</p></div>`
+            ],
+            5: [
+                // 第5章知识点（简化版）
+                `<div style="background: #fce7f3; padding: 15px; border-radius: 8px;"><h4>📚 厄尔尼诺现象</h4><p>秘鲁寒流减弱，东太平洋海温异常升高，导致全球气候异常。</p></div>`,
+                `<div style="background: #e0f2fe; padding: 15px; border-radius: 8px;"><h4>📚 温盐环流</h4><p>全球性的深层环流系统，由温度和盐度差异驱动，调节全球气候。</p></div>`,
+                `<div style="background: #fef3c7; padding: 15px; border-radius: 8px;"><h4>📚 气候变化影响</h4><p>全球变暖可能减弱温盐环流，影响全球气候格局。</p></div>`,
+                `<div style="background: #f0fdf4; padding: 15px; border-radius: 8px;"><h4>📚 科学探究</h4><p>科学研究需要：提出问题→设计实验→收集数据→得出结论。</p></div>`,
+                `<div style="background: #f5f3ff; padding: 15px; border-radius: 8px;"><h4>📚 课程总结</h4><p>恭喜完成全部学习！你已掌握洋流的基本知识和应用。</p></div>`
+            ]
+        };
     }
     
     // ========== 任务2：流向观察图（只显示纬度数值，让学生自己观察判断）==========
@@ -1179,6 +1316,599 @@ class OceanExploreSystem {
         this.ctx.fillRect(720, 470, 20, 10);
         this.ctx.fillStyle = 'white';
         this.ctx.fillText('陆地', 750, 480);
+    }
+    
+    // ========== 章节任务配置 ==========
+    getChapterTasks() {
+        return {
+            // 第1章：观察与发现
+            1: [
+                {
+                    title: '任务1：测量海水温度',
+                    question: '观察你测量的数据，暖流区域和寒流区域的温度有什么特点？它们与普通海水相比有什么不同？',
+                    instruction: '点击地图上的不同海域，科考船会自动航行到该位置并测量水温。',
+                    type: 'temperature'
+                },
+                {
+                    title: '任务2：观察洋流流向',
+                    question: '观察地图上的粒子流动方向：暖流（红色区域）向哪个方向流动？寒流（蓝色区域）呢？这与纬度有什么关系？',
+                    instruction: '仔细观察粒子的流动方向，结合纬度数值思考规律。',
+                    type: 'observe',
+                    hint: '💡 提示：注意粒子的移动方向和纬度数值的变化。'
+                },
+                {
+                    title: '任务3：总结洋流定义',
+                    question: '根据前两个任务的观察，请用自己的话回答：什么是暖流？什么是寒流？',
+                    instruction: '结合温度测量和流向观察的结果，尝试给出暖流和寒流的定义。',
+                    type: 'observe',
+                    hint: '💡 提示：从温度和流向两个角度思考。'
+                },
+                {
+                    title: '任务4：推理气候影响',
+                    question: '假设某沿海城市附近有暖流经过，你认为这会对当地气候产生什么影响？如果是寒流呢？',
+                    instruction: '思考：海水温度会影响空气温度，温暖的海水蒸发更多水汽...',
+                    type: 'observe',
+                    hint: '💡 提示：从气温和降水两方面分析。'
+                },
+                {
+                    title: '任务5：案例分析',
+                    question: '英国伦敦（51°N）和加拿大纽芬兰岛（49°N）纬度相近，但伦敦冬季平均气温约5°C，而纽芬兰岛约-5°C。请用洋流知识解释这种差异。',
+                    instruction: '运用你学到的洋流知识，分析两地气候差异的原因。',
+                    type: 'observe',
+                    hint: '💡 提示：观察地图上两地附近的洋流。'
+                }
+            ],
+            
+            // 第2章：实验探索 - 洋流是怎么形成的
+            2: [
+                {
+                    title: '实验1：风力驱动',
+                    question: '观察实验：当风持续吹向一个方向时，海水会发生什么变化？风力大小对海水流动有什么影响？',
+                    instruction: '拖动风向箭头，调节风力大小，观察海水的流动变化。',
+                    type: 'wind',
+                    hint: '💡 提示：注意观察风向与海水流向的关系，以及风力与流速的关系。'
+                },
+                {
+                    title: '实验2：温度与密度',
+                    question: '观察实验：冷水和热水哪个会下沉？这对洋流形成有什么影响？',
+                    instruction: '调节温度滑块，观察不同温度的海水如何运动。',
+                    type: 'density',
+                    hint: '💡 提示：密度大的物质会下沉，密度小的会上浮。'
+                },
+                {
+                    title: '实验3：盐度与密度',
+                    question: '观察实验：盐度高的海水和盐度低的海水，哪个密度更大？这会导致什么现象？',
+                    instruction: '调节盐度滑块，观察不同盐度的海水如何运动。',
+                    type: 'salinity',
+                    hint: '💡 提示：盐分会增加海水的密度。'
+                },
+                {
+                    title: '实验4：补偿流',
+                    question: '当一个区域的海水被风吹走后，会发生什么？周围的海水会如何运动？',
+                    instruction: '点击"抽走海水"按钮，观察周围海水的补偿运动。',
+                    type: 'compensation',
+                    hint: '💡 提示：海水会自动填补空缺的区域。'
+                },
+                {
+                    title: '总结：洋流成因',
+                    question: '根据以上实验，总结洋流形成的主要原因有哪些？',
+                    instruction: '结合四个实验的观察，归纳洋流形成的动力来源。',
+                    type: 'observe',
+                    hint: '💡 提示：风力、温度差异、盐度差异都是重要因素。'
+                }
+            ],
+            
+            // 第3章：地图探险 - 发现洋流分布规律
+            3: [
+                {
+                    title: '探险1：北半球洋流',
+                    question: '观察北太平洋和北大西洋的洋流，它们的流动方向有什么共同规律？',
+                    instruction: '在地图上观察北半球主要洋流的流向，尝试找出规律。',
+                    type: 'map_north',
+                    hint: '💡 提示：注意洋流整体的旋转方向。'
+                },
+                {
+                    title: '探险2：南半球洋流',
+                    question: '观察南太平洋和南大西洋的洋流，它们与北半球有什么不同？',
+                    instruction: '在地图上观察南半球主要洋流的流向，与北半球对比。',
+                    type: 'map_south',
+                    hint: '💡 提示：南北半球的旋转方向相反吗？'
+                },
+                {
+                    title: '探险3：赤道洋流',
+                    question: '赤道附近的洋流有什么特点？为什么会形成这样的流向？',
+                    instruction: '观察赤道附近的洋流分布，思考与风带的关系。',
+                    type: 'map_equator',
+                    hint: '💡 提示：赤道附近吹什么风？'
+                },
+                {
+                    title: '探险4：季风洋流',
+                    question: '北印度洋的洋流在夏季和冬季有什么不同？为什么会发生变化？',
+                    instruction: '切换季节，观察北印度洋洋流的变化。',
+                    type: 'monsoon',
+                    hint: '💡 提示：季风的方向会随季节改变。'
+                },
+                {
+                    title: '总结：洋流分布规律',
+                    question: '总结世界洋流分布的主要规律（从半球、纬度、大洋环流等角度）。',
+                    instruction: '结合以上观察，归纳洋流分布的规律。',
+                    type: 'observe',
+                    hint: '💡 提示：北顺南逆、东寒西暖...'
+                }
+            ],
+            
+            // 第4章：案例分析 - 洋流的影响
+            4: [
+                {
+                    title: '案例1：渔场选址',
+                    question: '你是一名渔业顾问，需要选择最佳的渔场位置。哪个海域的鱼类资源最丰富？为什么？',
+                    instruction: '观察三个候选海域的洋流情况，选择最适合建渔场的位置。',
+                    type: 'fishery',
+                    hint: '💡 提示：寒暖流交汇处会发生什么？'
+                },
+                {
+                    title: '案例2：航线规划',
+                    question: '从上海到旧金山有两条航线，哪条更省时间和燃料？请计算并解释原因。',
+                    instruction: '观察两条航线与洋流的关系，分析顺流和逆流的影响。',
+                    type: 'shipping',
+                    hint: '💡 提示：顺流航行可以节省多少时间？'
+                },
+                {
+                    title: '案例3：气候之谜',
+                    question: '为什么撒哈拉沙漠西海岸（加那利群岛附近）比同纬度的内陆更凉爽？',
+                    instruction: '分析该地区的洋流类型及其对气候的影响。',
+                    type: 'climate_case',
+                    hint: '💡 提示：那里有什么类型的洋流？'
+                },
+                {
+                    title: '案例4：雾都伦敦',
+                    question: '伦敦曾被称为"雾都"，这与洋流有什么关系？',
+                    instruction: '分析北大西洋暖流对英国气候的影响。',
+                    type: 'fog',
+                    hint: '💡 提示：暖流带来的水汽遇到什么会形成雾？'
+                },
+                {
+                    title: '综合应用',
+                    question: '如果你要在沿海地区建一个度假村，你会考虑哪些与洋流相关的因素？',
+                    instruction: '综合运用所学知识，分析洋流对旅游业的影响。',
+                    type: 'observe',
+                    hint: '💡 提示：气候、海水温度、海洋生物...'
+                }
+            ],
+            
+            // 第5章：综合探究
+            5: [
+                {
+                    title: '探究1：厄尔尼诺现象',
+                    question: '什么是厄尔尼诺现象？它是如何影响全球气候的？',
+                    instruction: '观察正常年份和厄尔尼诺年份的太平洋洋流变化。',
+                    type: 'elnino',
+                    hint: '💡 提示：秘鲁寒流减弱会导致什么？'
+                },
+                {
+                    title: '探究2：大西洋传送带',
+                    question: '什么是"大西洋温盐环流"？它对全球气候有什么重要作用？',
+                    instruction: '观察大西洋深层环流的运动模式。',
+                    type: 'thermohaline',
+                    hint: '💡 提示：这是一个全球性的"传送带"系统。'
+                },
+                {
+                    title: '探究3：气候变化影响',
+                    question: '全球变暖会如何影响洋流系统？可能带来什么后果？',
+                    instruction: '思考冰川融化、海水温度上升对洋流的影响。',
+                    type: 'observe',
+                    hint: '💡 提示：北极冰川融化会改变海水盐度...'
+                },
+                {
+                    title: '探究4：设计实验',
+                    question: '如果你是一名海洋科学家，你会设计什么实验来研究洋流？',
+                    instruction: '设计一个简单的实验方案，说明目的、方法和预期结果。',
+                    type: 'observe',
+                    hint: '💡 提示：可以从模拟实验或实地观测的角度思考。'
+                },
+                {
+                    title: '总结报告',
+                    question: '写一份简短的研究报告，总结你在本课程中学到的洋流知识。',
+                    instruction: '包括：洋流的定义、成因、分布规律、对人类的影响。',
+                    type: 'observe',
+                    hint: '💡 提示：用自己的话总结，不要照抄。'
+                }
+            ]
+        };
+    }
+    
+    // ========== 控制面板渲染 ==========
+    renderControlPanel(task, panel) {
+        switch (task.type) {
+            case 'temperature':
+                panel.innerHTML = `
+                    <h4>🌡️ 温度测量仪</h4>
+                    <p style="font-size: 13px; color: #64748b; margin-bottom: 15px; line-height: 1.6;">
+                        ${task.instruction}
+                    </p>
+                    <div style="background: #dbeafe; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <div style="font-size: 12px; color: #1e40af; margin-bottom: 8px;">测量进度</div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <div id="measure-warm" style="padding: 6px 12px; background: white; border-radius: 6px; font-size: 12px; color: #64748b;">⭕ 暖流区域</div>
+                            <div id="measure-cold" style="padding: 6px 12px; background: white; border-radius: 6px; font-size: 12px; color: #64748b;">⭕ 寒流区域</div>
+                            <div id="measure-normal" style="padding: 6px 12px; background: white; border-radius: 6px; font-size: 12px; color: #64748b;">⭕ 普通海域</div>
+                        </div>
+                    </div>
+                `;
+                break;
+                
+            case 'wind':
+                panel.innerHTML = `
+                    <h4>💨 风力实验</h4>
+                    <p style="font-size: 13px; color: #64748b; margin-bottom: 15px; line-height: 1.6;">
+                        ${task.instruction}
+                    </p>
+                    <div style="background: #e0f2fe; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <div style="margin-bottom: 15px;">
+                            <label style="font-size: 12px; color: #0369a1;">风向：</label>
+                            <input type="range" id="wind-direction" min="0" max="360" value="90" 
+                                style="width: 100%;" onchange="game.updateWind()">
+                            <div style="font-size: 11px; color: #64748b; text-align: center;" id="wind-dir-label">东风 (90°)</div>
+                        </div>
+                        <div>
+                            <label style="font-size: 12px; color: #0369a1;">风力：</label>
+                            <input type="range" id="wind-strength" min="0" max="100" value="50" 
+                                style="width: 100%;" onchange="game.updateWind()">
+                            <div style="font-size: 11px; color: #64748b; text-align: center;" id="wind-str-label">中等 (50%)</div>
+                        </div>
+                    </div>
+                    <div style="background: #fef3c7; padding: 12px; border-radius: 8px; font-size: 12px; color: #92400e;">
+                        ${task.hint}
+                    </div>
+                `;
+                setTimeout(() => {
+                    document.getElementById('thinking-area').style.display = 'block';
+                }, 500);
+                break;
+                
+            case 'density':
+                panel.innerHTML = `
+                    <h4>🌡️ 温度实验</h4>
+                    <p style="font-size: 13px; color: #64748b; margin-bottom: 15px; line-height: 1.6;">
+                        ${task.instruction}
+                    </p>
+                    <div style="background: #fce7f3; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <label style="font-size: 12px; color: #9d174d;">水温调节：</label>
+                        <input type="range" id="water-temp" min="0" max="30" value="15" 
+                            style="width: 100%;" onchange="game.updateDensity()">
+                        <div style="display: flex; justify-content: space-between; font-size: 11px; color: #64748b;">
+                            <span>冷 (0°C)</span>
+                            <span id="temp-label">15°C</span>
+                            <span>热 (30°C)</span>
+                        </div>
+                    </div>
+                    <div style="background: #fef3c7; padding: 12px; border-radius: 8px; font-size: 12px; color: #92400e;">
+                        ${task.hint}
+                    </div>
+                `;
+                setTimeout(() => {
+                    document.getElementById('thinking-area').style.display = 'block';
+                }, 500);
+                break;
+                
+            case 'salinity':
+                panel.innerHTML = `
+                    <h4>🧂 盐度实验</h4>
+                    <p style="font-size: 13px; color: #64748b; margin-bottom: 15px; line-height: 1.6;">
+                        ${task.instruction}
+                    </p>
+                    <div style="background: #dbeafe; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <label style="font-size: 12px; color: #1e40af;">盐度调节：</label>
+                        <input type="range" id="water-salinity" min="30" max="40" value="35" 
+                            style="width: 100%;" onchange="game.updateSalinity()">
+                        <div style="display: flex; justify-content: space-between; font-size: 11px; color: #64748b;">
+                            <span>低盐 (30‰)</span>
+                            <span id="salinity-label">35‰</span>
+                            <span>高盐 (40‰)</span>
+                        </div>
+                    </div>
+                    <div style="background: #fef3c7; padding: 12px; border-radius: 8px; font-size: 12px; color: #92400e;">
+                        ${task.hint}
+                    </div>
+                `;
+                setTimeout(() => {
+                    document.getElementById('thinking-area').style.display = 'block';
+                }, 500);
+                break;
+                
+            case 'compensation':
+                panel.innerHTML = `
+                    <h4>🌊 补偿流实验</h4>
+                    <p style="font-size: 13px; color: #64748b; margin-bottom: 15px; line-height: 1.6;">
+                        ${task.instruction}
+                    </p>
+                    <div style="text-align: center; margin-bottom: 15px;">
+                        <button id="remove-water-btn" onclick="game.removeWater()" 
+                            style="padding: 12px 24px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px;">
+                            💨 抽走海水
+                        </button>
+                        <button id="reset-water-btn" onclick="game.resetWater()" 
+                            style="padding: 12px 24px; background: #64748b; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; margin-left: 10px;">
+                            🔄 重置
+                        </button>
+                    </div>
+                    <div style="background: #fef3c7; padding: 12px; border-radius: 8px; font-size: 12px; color: #92400e;">
+                        ${task.hint}
+                    </div>
+                `;
+                setTimeout(() => {
+                    document.getElementById('thinking-area').style.display = 'block';
+                }, 500);
+                break;
+                
+            default:
+                // 观察或思考题
+                panel.innerHTML = `
+                    <h4>📝 任务说明</h4>
+                    <p style="font-size: 13px; color: #64748b; margin-bottom: 15px; line-height: 1.6;">
+                        ${task.instruction}
+                    </p>
+                    <div style="background: #fef3c7; padding: 12px; border-radius: 8px; font-size: 12px; color: #92400e; line-height: 1.6;">
+                        ${task.hint || '💡 仔细观察画面，思考问题。'}
+                    </div>
+                `;
+                setTimeout(() => {
+                    document.getElementById('thinking-area').style.display = 'block';
+                }, 300);
+        }
+    }
+    
+    // ========== 第2章实验交互方法 ==========
+    updateWind() {
+        const dir = document.getElementById('wind-direction')?.value || 90;
+        const str = document.getElementById('wind-strength')?.value || 50;
+        this.experimentState.windDirection = parseInt(dir);
+        this.experimentState.windStrength = parseInt(str);
+        
+        const directions = ['北风', '东北风', '东风', '东南风', '南风', '西南风', '西风', '西北风'];
+        const dirIndex = Math.round(dir / 45) % 8;
+        document.getElementById('wind-dir-label').textContent = `${directions[dirIndex]} (${dir}°)`;
+        document.getElementById('wind-str-label').textContent = str > 70 ? `强 (${str}%)` : str > 30 ? `中等 (${str}%)` : `弱 (${str}%)`;
+    }
+    
+    updateDensity() {
+        const temp = document.getElementById('water-temp')?.value || 15;
+        this.experimentState.temperature = parseInt(temp);
+        document.getElementById('temp-label').textContent = `${temp}°C`;
+    }
+    
+    updateSalinity() {
+        const sal = document.getElementById('water-salinity')?.value || 35;
+        this.experimentState.salinity = parseInt(sal);
+        document.getElementById('salinity-label').textContent = `${sal}‰`;
+    }
+    
+    removeWater() {
+        this.experimentState.waterRemoved = true;
+        document.getElementById('remove-water-btn').disabled = true;
+        document.getElementById('remove-water-btn').textContent = '已抽走';
+    }
+    
+    resetWater() {
+        this.experimentState.waterRemoved = false;
+        document.getElementById('remove-water-btn').disabled = false;
+        document.getElementById('remove-water-btn').textContent = '💨 抽走海水';
+    }
+    
+    // ========== 第2章实验可视化 ==========
+    drawChapter2Wind() {
+        // 风力实验可视化
+        this.ctx.fillStyle = '#0ea5e9';
+        this.ctx.fillRect(0, 0, 900, 500);
+        
+        // 水面
+        this.ctx.fillStyle = '#0284c7';
+        this.ctx.fillRect(0, 250, 900, 250);
+        
+        // 风向箭头
+        const windDir = this.experimentState.windDirection || 90;
+        const windStr = this.experimentState.windStrength || 50;
+        
+        this.ctx.save();
+        this.ctx.translate(450, 120);
+        this.ctx.rotate((windDir - 90) * Math.PI / 180);
+        
+        // 风箭头
+        const arrowSize = 30 + windStr * 0.5;
+        this.ctx.fillStyle = '#fbbf24';
+        this.ctx.beginPath();
+        this.ctx.moveTo(arrowSize, 0);
+        this.ctx.lineTo(-arrowSize/2, -arrowSize/2);
+        this.ctx.lineTo(-arrowSize/2, arrowSize/2);
+        this.ctx.closePath();
+        this.ctx.fill();
+        this.ctx.restore();
+        
+        // 风的标签
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = 'bold 16px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('🌬️ 风', 450, 80);
+        
+        // 海水流动粒子
+        const speed = windStr / 50;
+        for (let i = 0; i < 30; i++) {
+            const x = (this.animationFrame * speed + i * 30) % 900;
+            const y = 300 + Math.sin(x * 0.02) * 20 + (i % 5) * 30;
+            this.ctx.fillStyle = 'rgba(255,255,255,0.6)';
+            this.ctx.beginPath();
+            this.ctx.arc(x, y, 4, 0, Math.PI * 2);
+            this.ctx.fill();
+        }
+        
+        // 说明
+        this.ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        this.ctx.fillRect(50, 420, 800, 60);
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = '14px Arial';
+        this.ctx.fillText('观察：风持续吹动海面，海水会沿着风向流动', 450, 445);
+        this.ctx.fillText(`当前风力：${windStr}%，海水流速随风力增大而加快`, 450, 465);
+    }
+    
+    drawChapter2Density() {
+        // 温度密度实验
+        this.ctx.fillStyle = '#1e3a5f';
+        this.ctx.fillRect(0, 0, 900, 500);
+        
+        const temp = this.experimentState.temperature || 15;
+        
+        // 左边：冷水
+        const coldGradient = this.ctx.createLinearGradient(100, 100, 100, 400);
+        coldGradient.addColorStop(0, '#93c5fd');
+        coldGradient.addColorStop(1, '#1e40af');
+        this.ctx.fillStyle = coldGradient;
+        this.ctx.fillRect(100, 100, 200, 300);
+        
+        // 右边：热水
+        const warmGradient = this.ctx.createLinearGradient(600, 100, 600, 400);
+        warmGradient.addColorStop(0, '#fca5a5');
+        warmGradient.addColorStop(1, '#ef4444');
+        this.ctx.fillStyle = warmGradient;
+        this.ctx.fillRect(600, 100, 200, 300);
+        
+        // 中间：实验水
+        const testY = 100 + (30 - temp) * 8; // 温度越低，下沉越多
+        const testColor = temp < 15 ? '#60a5fa' : '#f87171';
+        this.ctx.fillStyle = testColor;
+        this.ctx.beginPath();
+        this.ctx.arc(450, testY, 30, 0, Math.PI * 2);
+        this.ctx.fill();
+        
+        // 标签
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = 'bold 16px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('冷水 (5°C)', 200, 80);
+        this.ctx.fillText('热水 (25°C)', 700, 80);
+        this.ctx.fillText(`实验水 (${temp}°C)`, 450, 50);
+        
+        // 箭头指示
+        if (temp < 15) {
+            this.ctx.fillText('↓ 下沉', 450, testY + 60);
+        } else {
+            this.ctx.fillText('↑ 上浮', 450, testY - 50);
+        }
+        
+        // 说明
+        this.ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        this.ctx.fillRect(50, 420, 800, 60);
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = '14px Arial';
+        this.ctx.fillText('观察：冷水密度大会下沉，热水密度小会上浮', 450, 445);
+        this.ctx.fillText('这种密度差异是形成深层洋流的重要原因', 450, 465);
+    }
+    
+    drawChapter2Salinity() {
+        // 盐度实验
+        this.ctx.fillStyle = '#0ea5e9';
+        this.ctx.fillRect(0, 0, 900, 500);
+        
+        const sal = this.experimentState.salinity || 35;
+        
+        // 容器
+        this.ctx.fillStyle = '#0284c7';
+        this.ctx.fillRect(200, 100, 500, 300);
+        
+        // 盐分粒子
+        const saltY = 100 + (sal - 30) * 20; // 盐度越高，下沉越多
+        for (let i = 0; i < sal - 25; i++) {
+            const x = 250 + (i % 10) * 45;
+            const y = saltY + Math.floor(i / 10) * 30 + Math.sin(this.animationFrame * 0.05 + i) * 5;
+            this.ctx.fillStyle = 'rgba(255,255,255,0.8)';
+            this.ctx.beginPath();
+            this.ctx.arc(x, y, 5, 0, Math.PI * 2);
+            this.ctx.fill();
+        }
+        
+        // 标签
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = 'bold 18px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText(`盐度：${sal}‰`, 450, 70);
+        
+        if (sal > 36) {
+            this.ctx.fillText('高盐度海水 → 密度大 → 下沉', 450, 450);
+        } else if (sal < 34) {
+            this.ctx.fillText('低盐度海水 → 密度小 → 上浮', 450, 450);
+        } else {
+            this.ctx.fillText('正常盐度海水', 450, 450);
+        }
+    }
+    
+    drawChapter2Compensation() {
+        // 补偿流实验
+        this.ctx.fillStyle = '#0ea5e9';
+        this.ctx.fillRect(0, 0, 900, 500);
+        
+        // 海水
+        this.ctx.fillStyle = '#0284c7';
+        this.ctx.fillRect(0, 200, 900, 300);
+        
+        if (this.experimentState.waterRemoved) {
+            // 抽走的区域
+            this.ctx.fillStyle = '#0ea5e9';
+            this.ctx.fillRect(350, 200, 200, 150);
+            
+            // 补偿流箭头
+            this.ctx.strokeStyle = '#fbbf24';
+            this.ctx.lineWidth = 4;
+            
+            // 左边补偿
+            this.ctx.beginPath();
+            this.ctx.moveTo(250, 280);
+            this.ctx.lineTo(340, 280);
+            this.ctx.stroke();
+            this.ctx.fillStyle = '#fbbf24';
+            this.ctx.beginPath();
+            this.ctx.moveTo(340, 280);
+            this.ctx.lineTo(320, 265);
+            this.ctx.lineTo(320, 295);
+            this.ctx.closePath();
+            this.ctx.fill();
+            
+            // 右边补偿
+            this.ctx.beginPath();
+            this.ctx.moveTo(650, 280);
+            this.ctx.lineTo(560, 280);
+            this.ctx.stroke();
+            this.ctx.beginPath();
+            this.ctx.moveTo(560, 280);
+            this.ctx.lineTo(580, 265);
+            this.ctx.lineTo(580, 295);
+            this.ctx.closePath();
+            this.ctx.fill();
+            
+            // 底部上升流
+            this.ctx.beginPath();
+            this.ctx.moveTo(450, 450);
+            this.ctx.lineTo(450, 360);
+            this.ctx.stroke();
+            this.ctx.beginPath();
+            this.ctx.moveTo(450, 360);
+            this.ctx.lineTo(435, 380);
+            this.ctx.lineTo(465, 380);
+            this.ctx.closePath();
+            this.ctx.fill();
+            
+            this.ctx.fillStyle = 'white';
+            this.ctx.font = 'bold 14px Arial';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText('海水被抽走', 450, 280);
+            this.ctx.fillText('周围海水补充', 450, 420);
+        }
+        
+        // 说明
+        this.ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        this.ctx.fillRect(50, 30, 800, 50);
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = '14px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('补偿流：当一个区域的海水被移走时，周围的海水会流过来补充', 450, 60);
     }
 }
 
