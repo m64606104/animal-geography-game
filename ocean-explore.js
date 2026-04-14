@@ -384,14 +384,28 @@ class OceanExploreSystem {
         this.ship.targetX = x;
         this.ship.targetY = y;
         
-        // 设置目标温度
-        const temps = {
-            warm: 28,
-            cold: 5,
-            normal: 20
-        };
+        // 根据位置计算温度（有梯度变化）
+        let temp = 20; // 基准温度
         
-        this.targetTemp = temps[type];
+        if (type === 'warm') {
+            // 暖流区域：中心最热，边缘接近普通海水
+            const centerX = 225; // 暖流中心
+            const centerY = 250;
+            const distFromCenter = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+            const maxDist = 125; // 最大距离
+            const heatFactor = Math.max(0, 1 - distFromCenter / maxDist);
+            temp = 20 + 8 * heatFactor; // 20°C到28°C渐变
+        } else if (type === 'cold') {
+            // 寒流区域：中心最冷，边缘接近普通海水
+            const centerX = 675; // 寒流中心
+            const centerY = 250;
+            const distFromCenter = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+            const maxDist = 125;
+            const coldFactor = Math.max(0, 1 - distFromCenter / maxDist);
+            temp = 20 - 15 * coldFactor; // 20°C到5°C渐变
+        }
+        
+        this.targetTemp = Math.round(temp * 10) / 10; // 保留一位小数
         this.tempTransition = 0;
         
         // 记录测量
@@ -407,16 +421,22 @@ class OceanExploreSystem {
     }
     
     addObservation(type) {
-        const observations = {
-            warm: '📌 暖流区域测量：水温28°C，比周围海水高8°C',
-            cold: '📌 寒流区域测量：水温5°C，比周围海水低15°C',
-            normal: '📌 普通海域测量：水温20°C（基准温度）'
-        };
+        const temp = this.targetTemp;
+        const diff = Math.abs(temp - 20);
+        
+        let text = '';
+        if (type === 'warm') {
+            text = `📌 暖流区域测量：水温${temp.toFixed(1)}°C，比周围海水高${diff.toFixed(1)}°C`;
+        } else if (type === 'cold') {
+            text = `📌 寒流区域测量：水温${temp.toFixed(1)}°C，比周围海水低${diff.toFixed(1)}°C`;
+        } else {
+            text = `📌 普通海域测量：水温${temp.toFixed(1)}°C（基准温度）`;
+        }
         
         const log = document.getElementById('observation-log');
         const item = document.createElement('div');
         item.className = 'observation-item';
-        item.textContent = observations[type];
+        item.textContent = text;
         item.style.opacity = '0';
         item.style.transform = 'translateY(-10px)';
         log.appendChild(item);
@@ -449,11 +469,42 @@ class OceanExploreSystem {
         this.currentTemp = null;
         this.targetTemp = null;
         
+        // 任务配置
+        const tasks = [
+            {
+                title: '任务1：测量海水温度',
+                question: '你发现红色海域和蓝色海域的温度有什么不同？为什么会有这种差异？',
+                instruction: '点击地图上的不同海域，科考船会自动航行到该位置并测量水温。'
+            },
+            {
+                title: '任务2：观察洋流流向',
+                question: '暖流和寒流的流向有什么规律？它们分别从哪里流向哪里？',
+                instruction: '观察地图上洋流的流动方向（粒子流动方向），思考流向规律。'
+            },
+            {
+                title: '任务3：推理洋流定义',
+                question: '根据前面的观察，你能用自己的话定义什么是暖流和寒流吗？',
+                instruction: '结合温度和流向的观察，总结暖流和寒流的科学定义。'
+            },
+            {
+                title: '任务4：预测气候影响',
+                question: '如果一个地区沿岸有暖流经过，你认为会对气候产生什么影响？寒流呢？',
+                instruction: '思考海水温度如何影响沿岸地区的气温和降水。'
+            },
+            {
+                title: '任务5：案例验证',
+                question: '英国和加拿大纽芬兰岛纬度相近，但英国更温暖。根据洋流知识，你能解释原因吗？',
+                instruction: '运用洋流知识解释真实的地理现象。'
+            }
+        ];
+        
+        const task = tasks[taskIndex];
+        
         // 更新UI
-        document.getElementById('task-title').textContent = '任务1：测量海水温度';
-        document.getElementById('task-number').textContent = '1/5';
-        document.getElementById('thinking-question').textContent = '你发现红色海域和蓝色海域的温度有什么不同？为什么会有这种差异？';
-        document.getElementById('chapter-title').textContent = '第1章：观察与发现';
+        document.getElementById('task-title').textContent = task.title;
+        document.getElementById('task-number').textContent = `${taskIndex + 1}/5`;
+        document.getElementById('thinking-question').textContent = task.question;
+        document.getElementById('chapter-title').textContent = `第1章：观察与发现 - 任务${taskIndex + 1}`;
         
         // 清空输入
         document.getElementById('answer-input').value = '';
@@ -461,29 +512,45 @@ class OceanExploreSystem {
         
         // 显示控制面板
         const controlsPanel = document.getElementById('controls-panel');
-        controlsPanel.innerHTML = `
-            <h4>🌡️ 温度测量仪</h4>
-            <p style="font-size: 13px; color: #64748b; margin-bottom: 15px; line-height: 1.6;">
-                点击地图上的不同海域，科考船会自动航行到该位置并测量水温。
-            </p>
-            <div style="background: #dbeafe; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                <div style="font-size: 12px; color: #1e40af; margin-bottom: 8px;">测量进度</div>
-                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <div id="measure-warm" style="padding: 6px 12px; background: white; border-radius: 6px; font-size: 12px; color: #64748b;">
-                        ⭕ 暖流区域
-                    </div>
-                    <div id="measure-cold" style="padding: 6px 12px; background: white; border-radius: 6px; font-size: 12px; color: #64748b;">
-                        ⭕ 寒流区域
-                    </div>
-                    <div id="measure-normal" style="padding: 6px 12px; background: white; border-radius: 6px; font-size: 12px; color: #64748b;">
-                        ⭕ 普通海域
+        if (taskIndex === 0) {
+            controlsPanel.innerHTML = `
+                <h4>🌡️ 温度测量仪</h4>
+                <p style="font-size: 13px; color: #64748b; margin-bottom: 15px; line-height: 1.6;">
+                    ${task.instruction}
+                </p>
+                <div style="background: #dbeafe; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                    <div style="font-size: 12px; color: #1e40af; margin-bottom: 8px;">测量进度</div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <div id="measure-warm" style="padding: 6px 12px; background: white; border-radius: 6px; font-size: 12px; color: #64748b;">
+                            ⭕ 暖流区域
+                        </div>
+                        <div id="measure-cold" style="padding: 6px 12px; background: white; border-radius: 6px; font-size: 12px; color: #64748b;">
+                            ⭕ 寒流区域
+                        </div>
+                        <div id="measure-normal" style="padding: 6px 12px; background: white; border-radius: 6px; font-size: 12px; color: #64748b;">
+                            ⭕ 普通海域
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div style="background: #fef3c7; padding: 12px; border-radius: 8px; font-size: 12px; color: #92400e; line-height: 1.6;">
-                💡 提示：完成所有三个区域的测量后，思考它们的温度差异。
-            </div>
-        `;
+                <div style="background: #fef3c7; padding: 12px; border-radius: 8px; font-size: 12px; color: #92400e; line-height: 1.6;">
+                    💡 提示：完成所有三个区域的测量后，思考它们的温度差异。
+                </div>
+            `;
+        } else {
+            controlsPanel.innerHTML = `
+                <h4>💭 思考提示</h4>
+                <p style="font-size: 13px; color: #64748b; margin-bottom: 15px; line-height: 1.6;">
+                    ${task.instruction}
+                </p>
+                <div style="background: #fef3c7; padding: 12px; border-radius: 8px; font-size: 12px; color: #92400e; line-height: 1.6;">
+                    💡 提示：结合前面的观察和测量结果来思考。
+                </div>
+            `;
+            // 非第一个任务直接显示思考区
+            setTimeout(() => {
+                document.getElementById('thinking-area').style.display = 'block';
+            }, 500);
+        }
         
         // 隐藏思考区和总结区
         document.getElementById('thinking-area').style.display = 'none';
@@ -504,26 +571,77 @@ class OceanExploreSystem {
             return;
         }
         
-        // 显示总结
-        document.getElementById('summary-content').innerHTML = `
-            通过测量，你发现：<br><br>
-            • 暖流区域的水温（28°C）<strong>比周围海水高</strong><br>
-            • 寒流区域的水温（5°C）<strong>比周围海水低</strong><br>
+        // 根据任务显示不同的总结
+        const summaries = [
+            `通过测量，你发现：<br><br>
+            • 暖流区域的水温<strong>比周围海水高</strong><br>
+            • 寒流区域的水温<strong>比周围海水低</strong><br>
             • 这就是<strong>暖流</strong>和<strong>寒流</strong>的温度特征<br><br>
-            <strong>关键概念</strong>：暖流和寒流不是指绝对温度，而是指<strong>相对于周围海水</strong>的温度。
-        `;
+            <strong>关键概念</strong>：暖流和寒流不是指绝对温度，而是指<strong>相对于周围海水</strong>的温度。`,
+            
+            `通过观察，你发现：<br><br>
+            • 暖流从<strong>低纬度</strong>流向<strong>高纬度</strong><br>
+            • 寒流从<strong>高纬度</strong>流向<strong>低纬度</strong><br>
+            • 洋流的流向与温度变化有关<br><br>
+            <strong>关键概念</strong>：洋流总是从温度高的地方流向温度低的地方，或相反。`,
+            
+            `你总结出：<br><br>
+            • <strong>暖流</strong>：从水温高的海区流向水温低的海区<br>
+            • <strong>寒流</strong>：从水温低的海区流向水温高的海区<br>
+            • 关键是<strong>相对温度</strong>，而不是绝对温度<br><br>
+            <strong>科学定义</strong>：洋流的冷暖性质取决于它相对于流经海区的温度。`,
+            
+            `你推理出：<br><br>
+            • 暖流会使沿岸气候<strong>增温加湿</strong><br>
+            • 寒流会使沿岸气候<strong>降温减湿</strong><br>
+            • 洋流是影响气候的重要因素<br><br>
+            <strong>原理</strong>：海水温度影响空气温度和蒸发量，进而影响气候。`,
+            
+            `案例分析：<br><br>
+            • 英国受<strong>北大西洋暖流</strong>影响，气候温暖湿润<br>
+            • 纽芬兰受<strong>拉布拉多寒流</strong>影响，气候寒冷<br>
+            • 这验证了洋流对气候的重要影响<br><br>
+            <strong>结论</strong>：洋流是造成同纬度地区气候差异的重要原因。`
+        ];
+        
+        document.getElementById('summary-content').innerHTML = summaries[this.currentTask];
         
         document.getElementById('thinking-area').style.display = 'none';
         document.getElementById('summary-area').classList.remove('hidden');
         
         // 更新进度
-        document.getElementById('progress-fill').style.width = '20%';
+        const progress = ((this.currentTask + 1) / 5) * 100;
+        document.getElementById('progress-fill').style.width = progress + '%';
         
         this.taskStage = 'summary';
     }
     
     nextTask() {
-        alert('第2-5个任务正在开发中，敬请期待！');
+        const nextTaskIndex = this.currentTask + 1;
+        if (nextTaskIndex < 5) {
+            this.showTask(nextTaskIndex);
+        } else {
+            // 完成所有任务
+            this.completeChapter();
+        }
+    }
+    
+    completeChapter() {
+        document.getElementById('task-screen').classList.add('hidden');
+        document.getElementById('chapter-complete').classList.remove('hidden');
+        
+        // 生成学习总结
+        document.getElementById('learning-summary').innerHTML = `
+            <ul style="list-style: none; padding: 0;">
+                <li style="margin-bottom: 12px;">✅ 理解了暖流和寒流的温度特征</li>
+                <li style="margin-bottom: 12px;">✅ 掌握了洋流的流向规律</li>
+                <li style="margin-bottom: 12px;">✅ 能够定义暖流和寒流的概念</li>
+                <li style="margin-bottom: 12px;">✅ 了解了洋流对气候的影响</li>
+                <li style="margin-bottom: 12px;">✅ 学会用洋流知识解释实际现象</li>
+            </ul>
+        `;
+        
+        document.getElementById('progress-fill').style.width = '100%';
     }
 }
 
