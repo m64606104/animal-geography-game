@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>动物地理大冒险 - 测试版</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        #game-info {
+            background: #555;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px auto;
+            max-width: 600px;
+        }
+        #animal-display {
+            font-size: 24px;
+            color: #4CAF50;
+            margin: 10px 0;
+        }
+        #maps-display {
+            font-size: 18px;
+            color: #2196F3;
+            margin: 10px 0;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>动物地理大冒险 - 测试版</h1>
+    
+    <div id="game-info">
+        <div id="animal-display">当前动物: 加载中...</div>
+        <div id="maps-display">地图: 加载中...</div>
+        <div id="questions-display">题目: 加载中...</div>
+    </div>
+    
+    <button onclick="testRandomAnimal()">随机选择动物</button>
+    <button onclick="window.location.href='index.html'">返回完整游戏</button>
+    
+    <script>
+        // 简化的动物系统测试
+        const animals = {
+            penguin: {
+                name: '企鹅',
+                habitat: 'antarctica',
+                maps: ['南极冰原', '海洋', '冰洞'],
+                description: '生活在南极的可爱鸟类'
+            },
+            panda: {
+                name: '大熊猫',
+                habitat: 'bamboo_forest',
+                maps: ['竹林秘境', '山地', '河谷'],
+                description: '中国国宝，爱吃竹子'
+            },
+            camel: {
+                name: '骆驼',
+                habitat: 'desert',
+                maps: ['沙漠绿洲', '绿洲', '沙丘'],
+                description: '沙漠之舟，耐渴能手'
+            },
+            kangaroo: {
+                name: '袋鼠',
+                habitat: 'australia',
+                maps: ['澳洲内陆', '桉树林', '大堡礁'],
+                description: '澳大利亚跳跃大师'
+            },
+            polar_bear: {
+                name: '北极熊',
+                habitat: 'arctic',
+                maps: ['北极冰原', '苔原', '冰冻海洋'],
+                description: '北极霸主，游泳健将'
+            }
+        };
+        
+        const questions = {
+            antarctica: [
+                '南极洲属于哪个板块？',
+                '企鹅主要分布在哪个半球？',
+                '南极洲的年平均温度约为？'
+            ],
+            bamboo_forest: [
+                '大熊猫主要分布在中国的哪个省？',
+                '竹子属于哪种植物类型？',
+                '大熊猫一天中大部分时间在做什么？'
+            ],
+            desert: [
+                '世界最大的沙漠是？',
+                '骆驼的驼峰主要储存的是？',
+                '仙人掌的刺是什么器官的变态？'
+            ],
+            australia: [
+                '澳大利亚位于哪个半球？',
+                '袋鼠属于哪个动物分类？',
+                '澳大利亚的国宝动物是？'
+            ],
+            arctic: [
+                '北极熊主要分布在哪个地区？',
+                '北极熊的皮肤是什么颜色？',
+                '北冰洋的面积约为？'
+            ]
+        };
+        
+        let currentAnimal = null;
+        
+        function getRandomAnimal() {
+            const animalKeys = Object.keys(animals);
+            const randomKey = animalKeys[Math.floor(Math.random() * animalKeys.length)];
+            return randomKey;
+        }
+        
+        function testRandomAnimal() {
+            currentAnimal = getRandomAnimal();
+            const animal = animals[currentAnimal];
+            
+            document.getElementById('animal-display').textContent = `当前动物: ${animal.name}`;
+            document.getElementById('maps-display').textContent = `地图: ${animal.maps.join(' → ')}`;
+            
+            const habitatQuestions = questions[animal.habitat] || [];
+            document.getElementById('questions-display').textContent = `题目示例: ${habitatQuestions[0] || '暂无题目'}`;
+        }
+        
+        // 页面加载时自动测试
+        window.onload = function() {
+            testRandomAnimal();
+        };
+    </script>
+</body>
+</html>

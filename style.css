@@ -1,0 +1,292 @@
+/* 基础样式重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Courier New', monospace;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+}
+
+/* 游戏容器 */
+.game-container {
+    width: 900px;
+    height: 650px;
+    background: #2c3e50;
+    border: 4px solid #34495e;
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* 顶部信息栏 */
+.game-header {
+    height: 60px;
+    background: linear-gradient(180deg, #3498db 0%, #2980b9 100%);
+    border-bottom: 3px solid #2471a3;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.health-display {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.health-label {
+    text-shadow: 2px 2px 0 #1a5490;
+}
+
+.hearts {
+    display: flex;
+    gap: 5px;
+}
+
+.heart {
+    font-size: 20px;
+    filter: drop-shadow(1px 1px 0 #1a5490);
+    transition: transform 0.2s;
+}
+
+.heart:hover {
+    transform: scale(1.1);
+}
+
+.map-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+    text-shadow: 2px 2px 0 #1a5490;
+}
+
+/* 游戏主区域 */
+.game-main {
+    flex: 1;
+    background: linear-gradient(180deg, #5dade2 0%, #3498db 50%, #2874a6 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    padding: 10px;
+}
+
+.canvas-container {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    border: 3px solid #5dade2;
+    border-radius: 8px;
+    background: #2c3e50;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#game-canvas {
+    background: #87ceeb;
+    border: none;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+/* 模态框样式 */
+.modal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.question-content, .game-over-content {
+    background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+    border: 4px solid #2d3436;
+    border-radius: 8px;
+    padding: 30px;
+    text-align: center;
+    color: white;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    min-width: 400px;
+}
+
+.question-content h3, .game-over-content h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 0 #2d3436;
+    font-weight: bold;
+}
+
+.question-text {
+    font-size: 18px;
+    margin-bottom: 20px;
+    line-height: 1.5;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 4px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.timer {
+    font-size: 16px;
+    margin-bottom: 20px;
+    font-weight: bold;
+    color: #ffeaa7;
+    text-shadow: 1px 1px 0 #2d3436;
+}
+
+.answers {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.answer-btn {
+    background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+    border: 3px solid #2d3436;
+    color: white;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.3s;
+    font-family: 'Courier New', monospace;
+    text-shadow: 1px 1px 0 #2d3436;
+}
+
+.answer-btn:hover {
+    background: linear-gradient(135deg, #00cec9 0%, #00b894 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.answer-btn:active {
+    transform: translateY(0);
+}
+
+/* 游戏结束界面 */
+.stats {
+    margin: 20px 0;
+    font-size: 16px;
+    line-height: 1.8;
+}
+
+.stats p {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 8px;
+    border-radius: 4px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.restart-btn {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    border: 3px solid #2d3436;
+    color: white;
+    padding: 15px 30px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.3s;
+    font-family: 'Courier New', monospace;
+    text-shadow: 1px 1px 0 #2d3436;
+}
+
+.restart-btn:hover {
+    background: linear-gradient(135deg, #ff6b6b 0%, #e74c3c 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* 底部控制提示 */
+.game-footer {
+    height: 50px;
+    background: linear-gradient(180deg, #34495e 0%, #2c3e50 100%);
+    border-top: 3px solid #1a252f;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 20px;
+    color: #ecf0f1;
+    font-size: 12px;
+}
+
+.controls {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+}
+
+.controls span {
+    text-shadow: 1px 1px 0 #1a252f;
+    opacity: 0.9;
+}
+
+/* 像素风格动画 */
+@keyframes pixelFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+}
+
+@keyframes pixelPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* 响应式设计 */
+@media (max-width: 920px) {
+    .game-container {
+        width: 95vw;
+        height: 90vh;
+        max-width: 800px;
+        max-height: 600px;
+    }
+    
+    #game-canvas {
+        width: 100%;
+        height: 100%;
+        max-width: 700px;
+        max-height: 400px;
+    }
+    
+    .question-content, .game-over-content {
+        min-width: 300px;
+        padding: 20px;
+    }
+    
+    .answers {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>动物地理大冒险</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <!-- 顶部信息栏 -->
+        <header class="game-header">
+            <div class="health-display">
+                <span class="health-label">生命值:</span>
+                <div class="hearts">
+                    <span class="heart">❤️</span>
+                    <span class="heart">❤️</span>
+                    <span class="heart">❤️</span>
+                    <span class="heart">❤️</span>
+                    <span class="heart">❤️</span>
+                    <span class="heart">❤️</span>
+                    <span class="heart">❤️</span>
+                    <span class="heart">❤️</span>
+                    <span class="heart">❤️</span>
+                    <span class="heart">❤️</span>
+                </div>
+            </div>
+            <div class="map-info">
+                <span class="current-animal">当前动物: <span id="animal-name">加载中...</span></span>
+                <span class="current-map">当前地图: <span id="map-name">海洋世界</span></span>
+                <span class="progress">进度: <span id="map-progress">0/5</span></span>
+            </div>
+        </header>
+
+        <!-- 游戏主区域 -->
+        <main class="game-main">
+            <div class="canvas-container">
+                <canvas id="game-canvas" width="1200" height="600"></canvas>
+            </div>
+            
+            <!-- 问答系统 -->
+            <div id="question-modal" class="modal hidden">
+                <div class="question-content">
+                    <h3>地理知识问答</h3>
+                    <div class="question-text">
+                        <p id="question-text">世界上最大的海洋是哪个？</p>
+                    </div>
+                    <div class="timer">
+                        剩余时间: <span id="timer">10</span>秒
+                    </div>
+                    <div class="answers">
+                        <button class="answer-btn" data-answer="A">A. 太平洋</button>
+                        <button class="answer-btn" data-answer="B">B. 大西洋</button>
+                        <button class="answer-btn" data-answer="C">C. 印度洋</button>
+                        <button class="answer-btn" data-answer="D">D. 北冰洋</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 游戏结束界面 -->
+            <div id="game-over" class="modal hidden">
+                <div class="game-over-content">
+                    <h2>游戏结束</h2>
+                    <p>你已经完成了所有挑战！</p>
+                    <div class="stats">
+                        <p>答对题目: <span id="correct-answers">0</span></p>
+                        <p>正确率: <span id="accuracy">0%</span></p>
+                    </div>
+                    <button class="restart-btn">重新开始</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- 底部控制提示 -->
+        <footer class="game-footer">
+            <div class="controls">
+                <span>使用方向键 ↑↓←→ 控制海鸥移动</span>
+                <span>碰到障碍物时会出现地理问题</span>
+            </div>
+        </footer>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
