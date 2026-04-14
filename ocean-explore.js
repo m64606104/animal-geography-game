@@ -761,105 +761,77 @@ class OceanExploreSystem {
         document.getElementById('progress-fill').style.width = '100%';
     }
     
-    // ========== 任务2：流向观察图 ==========
+    // ========== 任务2：流向观察图（只显示纬度数值，让学生自己观察判断）==========
     drawTask2FlowDirection() {
-        // 背景：简化的海洋
+        // 背景：简化的海洋，用颜色深浅表示温度（不直接说明）
         const gradient = this.ctx.createLinearGradient(0, 0, 0, 500);
-        gradient.addColorStop(0, '#1e3a5f');  // 高纬度 - 深蓝
-        gradient.addColorStop(0.5, '#0ea5e9'); // 中纬度
-        gradient.addColorStop(1, '#38bdf8');  // 低纬度 - 浅蓝
+        gradient.addColorStop(0, '#1e3a5f');  // 上方深蓝
+        gradient.addColorStop(0.5, '#0ea5e9'); 
+        gradient.addColorStop(1, '#38bdf8');  // 下方浅蓝
         this.ctx.fillStyle = gradient;
         this.ctx.fillRect(0, 0, 900, 500);
         
-        // 纬度标签
-        this.ctx.fillStyle = 'rgba(255,255,255,0.8)';
+        // 只标纬度数值，不说高低
+        this.ctx.fillStyle = 'rgba(255,255,255,0.9)';
         this.ctx.font = '14px Arial';
         this.ctx.textAlign = 'left';
-        this.ctx.fillText('高纬度 (60°N)', 10, 30);
-        this.ctx.fillText('中纬度 (30°N)', 10, 250);
-        this.ctx.fillText('低纬度 (赤道)', 10, 480);
+        this.ctx.fillText('60°N', 10, 30);
+        this.ctx.fillText('40°N', 10, 140);
+        this.ctx.fillText('20°N', 10, 250);
+        this.ctx.fillText('0° (赤道)', 10, 360);
+        this.ctx.fillText('20°S', 10, 470);
         
-        // 暖流箭头（从下往上）
-        this.ctx.save();
-        const warmArrowY = 400 - (this.animationFrame % 200);
+        // 绘制纬度线
+        this.ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+        this.ctx.lineWidth = 1;
+        [30, 140, 250, 360, 470].forEach(y => {
+            this.ctx.beginPath();
+            this.ctx.moveTo(60, y);
+            this.ctx.lineTo(880, y);
+            this.ctx.stroke();
+        });
         
-        // 绘制多个暖流箭头
-        for (let i = 0; i < 3; i++) {
-            const y = (warmArrowY + i * 150) % 450 + 50;
-            this.drawFlowArrow(200, y, 'up', '#ef4444', '暖流');
+        // 暖流区域 - 只显示流动的粒子，让学生观察方向
+        // 红色粒子向上流动
+        for (let i = 0; i < 8; i++) {
+            const baseY = (450 - (this.animationFrame * 1.5 + i * 60) % 450);
+            const x = 180 + Math.sin(baseY * 0.02) * 30;
+            this.ctx.fillStyle = '#ef4444';
+            this.ctx.beginPath();
+            this.ctx.arc(x, baseY, 8, 0, Math.PI * 2);
+            this.ctx.fill();
         }
         
-        // 寒流箭头（从上往下）
-        const coldArrowY = 100 + (this.animationFrame % 200);
-        for (let i = 0; i < 3; i++) {
-            const y = (coldArrowY + i * 150) % 450 + 50;
-            this.drawFlowArrow(700, y, 'down', '#3b82f6', '寒流');
+        // 蓝色粒子向下流动
+        for (let i = 0; i < 8; i++) {
+            const baseY = ((this.animationFrame * 1.5 + i * 60) % 450) + 30;
+            const x = 720 + Math.sin(baseY * 0.02) * 30;
+            this.ctx.fillStyle = '#3b82f6';
+            this.ctx.beginPath();
+            this.ctx.arc(x, baseY, 8, 0, Math.PI * 2);
+            this.ctx.fill();
         }
-        this.ctx.restore();
         
-        // 说明文字
+        // 只标注这是什么洋流，不说流向
         this.ctx.fillStyle = 'white';
-        this.ctx.font = 'bold 18px Arial';
+        this.ctx.font = 'bold 16px Arial';
         this.ctx.textAlign = 'center';
-        this.ctx.fillText('🔴 暖流：从低纬度 → 高纬度', 250, 250);
-        this.ctx.fillText('🔵 寒流：从高纬度 → 低纬度', 650, 250);
+        this.ctx.fillText('🔴 暖流 A', 180, 250);
+        this.ctx.fillText('🔵 寒流 B', 720, 250);
         
-        // 粒子效果
-        this.drawParticles();
+        // 提示观察
+        this.ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        this.ctx.fillRect(300, 450, 300, 40);
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = '14px Arial';
+        this.ctx.fillText('👀 观察红色和蓝色圆点的移动方向', 450, 475);
     }
     
-    drawFlowArrow(x, y, direction, color, label) {
-        this.ctx.save();
-        this.ctx.translate(x, y);
-        
-        // 箭头主体
-        this.ctx.fillStyle = color;
-        this.ctx.strokeStyle = 'white';
-        this.ctx.lineWidth = 2;
-        
-        this.ctx.beginPath();
-        if (direction === 'up') {
-            // 向上箭头
-            this.ctx.moveTo(0, -30);
-            this.ctx.lineTo(20, 10);
-            this.ctx.lineTo(8, 10);
-            this.ctx.lineTo(8, 40);
-            this.ctx.lineTo(-8, 40);
-            this.ctx.lineTo(-8, 10);
-            this.ctx.lineTo(-20, 10);
-        } else {
-            // 向下箭头
-            this.ctx.moveTo(0, 30);
-            this.ctx.lineTo(20, -10);
-            this.ctx.lineTo(8, -10);
-            this.ctx.lineTo(8, -40);
-            this.ctx.lineTo(-8, -40);
-            this.ctx.lineTo(-8, -10);
-            this.ctx.lineTo(-20, -10);
-        }
-        this.ctx.closePath();
-        this.ctx.fill();
-        this.ctx.stroke();
-        
-        this.ctx.restore();
-    }
-    
-    // ========== 任务3：暖流寒流对比图 ==========
+    // ========== 任务3：数据对比图（只给数据，让学生总结）==========
     drawTask3Comparison() {
-        // 分成左右两部分
-        // 左边：暖流
-        const warmGradient = this.ctx.createLinearGradient(0, 0, 450, 0);
-        warmGradient.addColorStop(0, '#fecaca');
-        warmGradient.addColorStop(1, '#ef4444');
-        this.ctx.fillStyle = warmGradient;
-        this.ctx.fillRect(0, 0, 450, 500);
-        
-        // 右边：寒流
-        const coldGradient = this.ctx.createLinearGradient(450, 0, 900, 0);
-        coldGradient.addColorStop(0, '#3b82f6');
-        coldGradient.addColorStop(1, '#bfdbfe');
-        this.ctx.fillStyle = coldGradient;
-        this.ctx.fillRect(450, 0, 450, 500);
+        // 背景
+        this.ctx.fillStyle = '#0ea5e9';
+        this.ctx.fillRect(0, 0, 900, 500);
         
         // 中间分隔线
         this.ctx.strokeStyle = 'white';
@@ -871,62 +843,68 @@ class OceanExploreSystem {
         this.ctx.stroke();
         this.ctx.setLineDash([]);
         
-        // 暖流信息
+        // 任务3：只给测量数据，让学生自己总结定义
+        // 左边：洋流X的数据
+        this.ctx.fillStyle = '#ef4444';
+        this.ctx.fillRect(50, 50, 350, 400);
+        
         this.ctx.fillStyle = 'white';
-        this.ctx.font = 'bold 28px Arial';
+        this.ctx.font = 'bold 24px Arial';
         this.ctx.textAlign = 'center';
-        this.ctx.fillText('🔴 暖流', 225, 60);
+        this.ctx.fillText('洋流 X', 225, 90);
         
-        this.ctx.font = '18px Arial';
-        this.ctx.fillText('温度：高于周围海水', 225, 120);
-        this.ctx.fillText('流向：低纬度 → 高纬度', 225, 160);
+        // 数据卡片
+        this.ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        this.ctx.fillRect(80, 120, 290, 300);
         
-        // 暖流温度计
-        this.drawMiniThermometer(225, 280, 26, '#ef4444');
+        this.ctx.fillStyle = '#333';
+        this.ctx.font = '16px Arial';
+        this.ctx.textAlign = 'left';
+        this.ctx.fillText('📊 测量数据：', 100, 160);
+        this.ctx.fillText('• 洋流水温：26°C', 100, 200);
+        this.ctx.fillText('• 周围海水温度：18°C', 100, 235);
+        this.ctx.fillText('• 起点纬度：10°N', 100, 280);
+        this.ctx.fillText('• 终点纬度：50°N', 100, 315);
         
-        // 暖流流向箭头
-        this.ctx.fillStyle = '#dc2626';
-        this.ctx.beginPath();
-        this.ctx.moveTo(225, 450);
-        this.ctx.lineTo(245, 420);
-        this.ctx.lineTo(235, 420);
-        this.ctx.lineTo(235, 380);
-        this.ctx.lineTo(215, 380);
-        this.ctx.lineTo(215, 420);
-        this.ctx.lineTo(205, 420);
-        this.ctx.closePath();
-        this.ctx.fill();
+        this.ctx.font = 'bold 14px Arial';
+        this.ctx.fillStyle = '#666';
+        this.ctx.fillText('❓ 这是暖流还是寒流？', 100, 370);
+        this.ctx.fillText('❓ 你的判断依据是什么？', 100, 400);
+        
+        // 右边：洋流Y的数据
+        this.ctx.fillStyle = '#3b82f6';
+        this.ctx.fillRect(500, 50, 350, 400);
+        
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = 'bold 24px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('洋流 Y', 675, 90);
+        
+        // 数据卡片
+        this.ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        this.ctx.fillRect(530, 120, 290, 300);
+        
+        this.ctx.fillStyle = '#333';
+        this.ctx.font = '16px Arial';
+        this.ctx.textAlign = 'left';
+        this.ctx.fillText('📊 测量数据：', 550, 160);
+        this.ctx.fillText('• 洋流水温：8°C', 550, 200);
+        this.ctx.fillText('• 周围海水温度：16°C', 550, 235);
+        this.ctx.fillText('• 起点纬度：60°N', 550, 280);
+        this.ctx.fillText('• 终点纬度：20°N', 550, 315);
+        
+        this.ctx.font = 'bold 14px Arial';
+        this.ctx.fillStyle = '#666';
+        this.ctx.fillText('❓ 这是暖流还是寒流？', 550, 370);
+        this.ctx.fillText('❓ 你的判断依据是什么？', 550, 400);
+        
+        // 底部提示
+        this.ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        this.ctx.fillRect(200, 460, 500, 35);
         this.ctx.fillStyle = 'white';
         this.ctx.font = '14px Arial';
-        this.ctx.fillText('向高纬度', 225, 470);
-        
-        // 寒流信息
-        this.ctx.fillStyle = 'white';
-        this.ctx.font = 'bold 28px Arial';
-        this.ctx.fillText('🔵 寒流', 675, 60);
-        
-        this.ctx.font = '18px Arial';
-        this.ctx.fillText('温度：低于周围海水', 675, 120);
-        this.ctx.fillText('流向：高纬度 → 低纬度', 675, 160);
-        
-        // 寒流温度计
-        this.drawMiniThermometer(675, 280, 8, '#3b82f6');
-        
-        // 寒流流向箭头
-        this.ctx.fillStyle = '#2563eb';
-        this.ctx.beginPath();
-        this.ctx.moveTo(675, 380);
-        this.ctx.lineTo(695, 410);
-        this.ctx.lineTo(685, 410);
-        this.ctx.lineTo(685, 450);
-        this.ctx.lineTo(665, 450);
-        this.ctx.lineTo(665, 410);
-        this.ctx.lineTo(655, 410);
-        this.ctx.closePath();
-        this.ctx.fill();
-        this.ctx.fillStyle = 'white';
-        this.ctx.font = '14px Arial';
-        this.ctx.fillText('向低纬度', 675, 470);
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('💡 根据数据，尝试用自己的话定义"暖流"和"寒流"', 450, 483);
     }
     
     drawMiniThermometer(x, y, temp, color) {
@@ -957,86 +935,68 @@ class OceanExploreSystem {
         this.ctx.fillText(temp + '°C', x, y + 80);
     }
     
-    // ========== 任务4：气候影响示意图 ==========
+    // ========== 任务4：气候影响示意图（只给现象，让学生推理）==========
     drawTask4Climate() {
-        // 左半边：暖流影响
-        this.ctx.fillStyle = '#fef3c7';
-        this.ctx.fillRect(0, 0, 450, 500);
+        // 背景
+        this.ctx.fillStyle = '#87ceeb';
+        this.ctx.fillRect(0, 0, 900, 500);
         
-        // 右半边：寒流影响
-        this.ctx.fillStyle = '#e0f2fe';
-        this.ctx.fillRect(450, 0, 450, 500);
-        
-        // 暖流区域
-        this.ctx.fillStyle = '#dc2626';
-        this.ctx.font = 'bold 24px Arial';
+        // 标题
+        this.ctx.fillStyle = '#1e3a5f';
+        this.ctx.font = 'bold 20px Arial';
         this.ctx.textAlign = 'center';
-        this.ctx.fillText('暖流经过的沿岸', 225, 40);
+        this.ctx.fillText('🌍 两个沿海城市的气候数据对比', 450, 30);
         
-        // 绘制暖流影响图
-        // 太阳
-        this.ctx.fillStyle = '#fbbf24';
-        this.ctx.beginPath();
-        this.ctx.arc(100, 100, 30, 0, Math.PI * 2);
-        this.ctx.fill();
-        
-        // 海水（暖）
+        // 城市A（暖流影响）
         this.ctx.fillStyle = '#ef4444';
-        this.ctx.fillRect(50, 350, 350, 100);
+        this.ctx.fillRect(50, 60, 380, 180);
         this.ctx.fillStyle = 'white';
-        this.ctx.font = '16px Arial';
-        this.ctx.fillText('温暖海水', 225, 400);
+        this.ctx.font = 'bold 22px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('城市 A', 240, 95);
         
-        // 蒸发箭头
-        for (let i = 0; i < 5; i++) {
-            const ax = 80 + i * 70;
-            this.drawWavyArrow(ax, 340, ax, 250, '#60a5fa');
-        }
+        this.ctx.fillStyle = 'rgba(255,255,255,0.95)';
+        this.ctx.fillRect(70, 110, 340, 120);
+        this.ctx.fillStyle = '#333';
+        this.ctx.font = '15px Arial';
+        this.ctx.textAlign = 'left';
+        this.ctx.fillText('📍 位置：某大陆西海岸', 90, 140);
+        this.ctx.fillText('🌊 附近洋流水温：24°C', 90, 165);
+        this.ctx.fillText('🌡️ 年平均气温：18°C', 90, 190);
+        this.ctx.fillText('💧 年降水量：1200mm', 90, 215);
         
-        // 云和雨
-        this.drawCloud(150, 180);
-        this.drawCloud(280, 160);
-        this.drawRain(150, 220);
-        this.drawRain(280, 200);
-        
-        // 陆地
-        this.ctx.fillStyle = '#22c55e';
-        this.ctx.fillRect(50, 450, 350, 50);
-        
-        // 效果说明
-        this.ctx.fillStyle = '#dc2626';
-        this.ctx.font = 'bold 18px Arial';
-        this.ctx.fillText('☀️ 增温', 120, 490);
-        this.ctx.fillText('🌧️ 增湿', 320, 490);
-        
-        // 寒流区域
-        this.ctx.fillStyle = '#1e40af';
-        this.ctx.font = 'bold 24px Arial';
-        this.ctx.fillText('寒流经过的沿岸', 675, 40);
-        
-        // 海水（冷）
+        // 城市B（寒流影响）
         this.ctx.fillStyle = '#3b82f6';
-        this.ctx.fillRect(500, 350, 350, 100);
+        this.ctx.fillRect(470, 60, 380, 180);
         this.ctx.fillStyle = 'white';
-        this.ctx.font = '16px Arial';
-        this.ctx.fillText('寒冷海水', 675, 400);
+        this.ctx.font = 'bold 22px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('城市 B', 660, 95);
         
-        // 少量蒸发
-        this.drawWavyArrow(600, 340, 600, 300, '#93c5fd');
-        this.drawWavyArrow(750, 340, 750, 300, '#93c5fd');
+        this.ctx.fillStyle = 'rgba(255,255,255,0.95)';
+        this.ctx.fillRect(490, 110, 340, 120);
+        this.ctx.fillStyle = '#333';
+        this.ctx.font = '15px Arial';
+        this.ctx.textAlign = 'left';
+        this.ctx.fillText('📍 位置：某大陆西海岸（同纬度）', 510, 140);
+        this.ctx.fillText('🌊 附近洋流水温：12°C', 510, 165);
+        this.ctx.fillText('🌡️ 年平均气温：14°C', 510, 190);
+        this.ctx.fillText('💧 年降水量：300mm', 510, 215);
         
-        // 少云
-        this.drawCloud(675, 200, 0.5);
-        
-        // 陆地（干旱）
-        this.ctx.fillStyle = '#d4a574';
-        this.ctx.fillRect(500, 450, 350, 50);
-        
-        // 效果说明
-        this.ctx.fillStyle = '#1e40af';
+        // 思考问题
+        this.ctx.fillStyle = 'rgba(0,0,0,0.8)';
+        this.ctx.fillRect(100, 270, 700, 200);
+        this.ctx.fillStyle = 'white';
         this.ctx.font = 'bold 18px Arial';
-        this.ctx.fillText('❄️ 降温', 570, 490);
-        this.ctx.fillText('🏜️ 减湿', 770, 490);
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('🤔 思考问题', 450, 305);
+        
+        this.ctx.font = '16px Arial';
+        this.ctx.textAlign = 'left';
+        this.ctx.fillText('1. 两个城市纬度相同，为什么气温和降水差异这么大？', 130, 345);
+        this.ctx.fillText('2. 洋流水温与城市气候有什么关系？', 130, 380);
+        this.ctx.fillText('3. 如果你是城市A的居民，你会感受到什么样的气候？', 130, 415);
+        this.ctx.fillText('4. 城市B呢？', 130, 450);
     }
     
     drawWavyArrow(x1, y1, x2, y2, color) {
@@ -1127,7 +1087,7 @@ class OceanExploreSystem {
         this.ctx.ellipse(280, 130, 25, 35, 0.3, 0, Math.PI * 2);
         this.ctx.fill();
         
-        // 北大西洋暖流（红色箭头）
+        // 洋流P（不说明是暖流还是寒流）
         this.ctx.strokeStyle = '#ef4444';
         this.ctx.lineWidth = 8;
         this.ctx.setLineDash([]);
@@ -1136,16 +1096,7 @@ class OceanExploreSystem {
         this.ctx.quadraticCurveTo(350, 300, 400, 200);
         this.ctx.stroke();
         
-        // 暖流箭头
-        this.ctx.fillStyle = '#ef4444';
-        this.ctx.beginPath();
-        this.ctx.moveTo(400, 180);
-        this.ctx.lineTo(385, 210);
-        this.ctx.lineTo(415, 210);
-        this.ctx.closePath();
-        this.ctx.fill();
-        
-        // 拉布拉多寒流（蓝色箭头）
+        // 洋流Q（不说明是暖流还是寒流）
         this.ctx.strokeStyle = '#3b82f6';
         this.ctx.lineWidth = 8;
         this.ctx.beginPath();
@@ -1153,62 +1104,62 @@ class OceanExploreSystem {
         this.ctx.quadraticCurveTo(280, 100, 290, 180);
         this.ctx.stroke();
         
-        // 寒流箭头
-        this.ctx.fillStyle = '#3b82f6';
-        this.ctx.beginPath();
-        this.ctx.moveTo(290, 200);
-        this.ctx.lineTo(275, 170);
-        this.ctx.lineTo(305, 170);
-        this.ctx.closePath();
-        this.ctx.fill();
-        
-        // 标注
+        // 只标注地名和数据，不给结论
         this.ctx.fillStyle = 'white';
         this.ctx.font = 'bold 16px Arial';
         this.ctx.textAlign = 'center';
         
-        // 英国标注
-        this.ctx.fillStyle = '#fef3c7';
-        this.ctx.fillRect(380, 200, 100, 60);
-        this.ctx.fillStyle = '#dc2626';
-        this.ctx.fillText('🇬🇧 英国', 430, 220);
-        this.ctx.font = '12px Arial';
-        this.ctx.fillText('冬季 5°C', 430, 240);
-        this.ctx.fillText('温暖湿润', 430, 255);
-        
-        // 纽芬兰标注
-        this.ctx.fillStyle = '#dbeafe';
-        this.ctx.fillRect(230, 170, 100, 60);
-        this.ctx.fillStyle = '#1e40af';
-        this.ctx.font = 'bold 16px Arial';
-        this.ctx.fillText('🇨🇦 纽芬兰', 280, 190);
-        this.ctx.font = '12px Arial';
-        this.ctx.fillText('冬季 -5°C', 280, 210);
-        this.ctx.fillText('寒冷干燥', 280, 225);
-        
-        // 洋流标签
-        this.ctx.fillStyle = '#ef4444';
+        // 英国标注（只给数据）
+        this.ctx.fillStyle = 'rgba(255,255,255,0.95)';
+        this.ctx.fillRect(380, 200, 120, 70);
+        this.ctx.fillStyle = '#333';
         this.ctx.font = 'bold 14px Arial';
-        this.ctx.fillText('北大西洋暖流', 350, 350);
+        this.ctx.fillText('🇬🇧 伦敦', 440, 220);
+        this.ctx.font = '12px Arial';
+        this.ctx.fillText('纬度：51°N', 440, 240);
+        this.ctx.fillText('冬季均温：5°C', 440, 258);
+        
+        // 纽芬兰标注（只给数据）
+        this.ctx.fillStyle = 'rgba(255,255,255,0.95)';
+        this.ctx.fillRect(200, 170, 120, 70);
+        this.ctx.fillStyle = '#333';
+        this.ctx.font = 'bold 14px Arial';
+        this.ctx.fillText('🇨🇦 纽芬兰', 260, 190);
+        this.ctx.font = '12px Arial';
+        this.ctx.fillText('纬度：49°N', 260, 210);
+        this.ctx.fillText('冬季均温：-5°C', 260, 228);
+        
+        // 洋流标签（只标P和Q，不说明类型）
+        this.ctx.fillStyle = '#ef4444';
+        this.ctx.font = 'bold 16px Arial';
+        this.ctx.fillText('洋流 P', 350, 350);
         
         this.ctx.fillStyle = '#3b82f6';
-        this.ctx.fillText('拉布拉多寒流', 320, 80);
+        this.ctx.fillText('洋流 Q', 320, 80);
         
         // 纬度线
         this.ctx.strokeStyle = 'rgba(255,255,255,0.3)';
         this.ctx.lineWidth = 1;
         this.ctx.setLineDash([5, 5]);
-        this.ctx.beginPath();
-        this.ctx.moveTo(0, 150);
-        this.ctx.lineTo(900, 150);
-        this.ctx.stroke();
-        this.ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        [80, 150, 220, 290, 360].forEach((y, i) => {
+            this.ctx.beginPath();
+            this.ctx.moveTo(0, y);
+            this.ctx.lineTo(900, y);
+            this.ctx.stroke();
+        });
+        
+        // 纬度数值
+        this.ctx.fillStyle = 'rgba(255,255,255,0.8)';
         this.ctx.font = '12px Arial';
         this.ctx.textAlign = 'right';
-        this.ctx.fillText('50°N', 890, 145);
+        this.ctx.fillText('60°N', 890, 85);
+        this.ctx.fillText('50°N', 890, 155);
+        this.ctx.fillText('40°N', 890, 225);
+        this.ctx.fillText('30°N', 890, 295);
+        this.ctx.fillText('20°N', 890, 365);
         this.ctx.setLineDash([]);
         
-        // 图例
+        // 图例（不说明暖流寒流）
         this.ctx.fillStyle = 'rgba(0,0,0,0.7)';
         this.ctx.fillRect(700, 380, 180, 100);
         this.ctx.fillStyle = 'white';
@@ -1219,11 +1170,11 @@ class OceanExploreSystem {
         this.ctx.fillRect(720, 420, 20, 10);
         this.ctx.fillStyle = 'white';
         this.ctx.font = '12px Arial';
-        this.ctx.fillText('暖流', 750, 430);
+        this.ctx.fillText('洋流 P', 750, 430);
         this.ctx.fillStyle = '#3b82f6';
         this.ctx.fillRect(720, 445, 20, 10);
         this.ctx.fillStyle = 'white';
-        this.ctx.fillText('寒流', 750, 455);
+        this.ctx.fillText('洋流 Q', 750, 455);
         this.ctx.fillStyle = '#22c55e';
         this.ctx.fillRect(720, 470, 20, 10);
         this.ctx.fillStyle = 'white';
