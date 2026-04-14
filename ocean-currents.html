@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>洋流大冒险 - 专题学习</title>
+    <link rel="stylesheet" href="ocean-currents.css">
+</head>
+<body>
+    <div class="ocean-container">
+        <!-- 顶部信息栏 -->
+        <header class="ocean-header">
+            <button class="back-home-btn" id="back-home">🏠 返回主页</button>
+            <div class="progress-info">
+                <span class="level-display">关卡: <span id="current-level">1</span>/5</span>
+                <span class="score-display">⭐ 得分: <span id="total-score">0</span></span>
+                <span class="gems-display">💎 宝石: <span id="gems-count">0</span></span>
+            </div>
+        </header>
+
+        <!-- 主游戏区域 -->
+        <main class="ocean-main">
+            <!-- 关卡选择界面 -->
+            <div id="level-select-screen" class="screen">
+                <div class="level-select-content">
+                    <h1 class="ocean-title">🌊 洋流大冒险 🚢</h1>
+                    <p class="ocean-subtitle">驾驶小船，探索洋流奥秘</p>
+                    
+                    <div class="levels-grid">
+                        <div class="level-card" data-level="1">
+                            <div class="level-icon">🔴🔵</div>
+                            <h3>第1关</h3>
+                            <p>暖流寒流识别</p>
+                            <div class="level-status">
+                                <span class="stars">⭐⭐⭐</span>
+                                <span class="best-score">最高: 0</span>
+                            </div>
+                        </div>
+                        
+                        <div class="level-card locked" data-level="2">
+                            <div class="level-icon">💨🌀</div>
+                            <h3>第2关</h3>
+                            <p>洋流成因探秘</p>
+                            <div class="level-status">
+                                <span class="lock-icon">🔒</span>
+                            </div>
+                        </div>
+                        
+                        <div class="level-card locked" data-level="3">
+                            <div class="level-icon">🗺️🧭</div>
+                            <h3>第3关</h3>
+                            <p>洋流分布规律</p>
+                            <div class="level-status">
+                                <span class="lock-icon">🔒</span>
+                            </div>
+                        </div>
+                        
+                        <div class="level-card locked" data-level="4">
+                            <div class="level-icon">🌏🌊</div>
+                            <h3>第4关</h3>
+                            <p>世界主要洋流</p>
+                            <div class="level-status">
+                                <span class="lock-icon">🔒</span>
+                            </div>
+                        </div>
+                        
+                        <div class="level-card locked" data-level="5">
+                            <div class="level-icon">🎓🏆</div>
+                            <h3>第5关</h3>
+                            <p>洋流影响应用</p>
+                            <div class="level-status">
+                                <span class="lock-icon">🔒</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="knowledge-cards-btn">
+                        <button class="btn-secondary" id="view-knowledge-btn">📚 查看知识卡片</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 游戏画布界面 -->
+            <div id="game-screen" class="screen hidden">
+                <div class="game-canvas-wrapper">
+                    <canvas id="ocean-canvas" width="1000" height="600"></canvas>
+                    <div class="game-hud">
+                        <div class="question-counter">题目: <span id="question-num">1</span>/<span id="total-questions">15</span></div>
+                        <div class="timer">⏱️ <span id="time-left">15</span>秒</div>
+                        <div class="combo">连对: <span id="combo-count">0</span></div>
+                    </div>
+                </div>
+                
+                <!-- 问题面板 -->
+                <div id="question-panel" class="question-panel hidden">
+                    <div class="question-content">
+                        <h3 id="question-text">这是一道关于洋流的问题？</h3>
+                        <div class="options-grid" id="options-container">
+                            <button class="option-btn" data-answer="A">A. 选项A</button>
+                            <button class="option-btn" data-answer="B">B. 选项B</button>
+                            <button class="option-btn" data-answer="C">C. 选项C</button>
+                            <button class="option-btn" data-answer="D">D. 选项D</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 关卡完成界面 -->
+            <div id="level-complete-screen" class="screen hidden">
+                <div class="complete-content">
+                    <h2 class="complete-title">🎉 关卡完成！</h2>
+                    <div class="complete-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">正确率</span>
+                            <span class="stat-value" id="accuracy-rate">0%</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">获得分数</span>
+                            <span class="stat-value" id="level-score">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">获得宝石</span>
+                            <span class="stat-value" id="earned-gems">0</span>
+                        </div>
+                    </div>
+                    <div class="stars-display" id="stars-earned">
+                        ⭐⭐⭐
+                    </div>
+                    <div class="knowledge-unlock" id="knowledge-unlock">
+                        <p>🎓 解锁新知识卡片！</p>
+                    </div>
+                    <div class="complete-buttons">
+                        <button class="btn-primary" id="next-level-btn">下一关</button>
+                        <button class="btn-secondary" id="retry-level-btn">重新挑战</button>
+                        <button class="btn-secondary" id="back-to-select-btn">返回选关</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 知识卡片界面 -->
+            <div id="knowledge-screen" class="screen hidden">
+                <div class="knowledge-content">
+                    <h2>📚 洋流知识卡片</h2>
+                    <div class="knowledge-grid" id="knowledge-grid">
+                        <!-- 知识卡片将动态生成 -->
+                    </div>
+                    <button class="btn-secondary" id="close-knowledge-btn">返回</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="ocean-currents.js"></script>
+</body>
+</html>
