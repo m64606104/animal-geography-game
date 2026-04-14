@@ -752,9 +752,13 @@ class GameState {
         // 游戏大厅 - 专题学习按钮
         const specialTopicsBtn = document.getElementById('special-topics-btn');
         if (specialTopicsBtn) {
-            specialTopicsBtn.addEventListener('click', () => {
+            specialTopicsBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('专题学习按钮被点击');
                 window.location.href = 'ocean-currents.html';
             });
+        } else {
+            console.error('找不到专题学习按钮');
         }
         
         // 游戏大厅 - 游戏说明按钮
@@ -763,6 +767,15 @@ class GameState {
             gameLobby.classList.add('hidden');
             gameRulesScreen.classList.remove('hidden');
         });
+        
+        // 游戏说明 - 返回大厅按钮
+        const backFromRulesBtn = document.getElementById('back-from-rules-btn');
+        if (backFromRulesBtn) {
+            backFromRulesBtn.addEventListener('click', () => {
+                gameRulesScreen.classList.add('hidden');
+                gameLobby.classList.remove('hidden');
+            });
+        }
         
         // 动物选择界面
         const animalCards = document.querySelectorAll('.animal-card');
@@ -792,6 +805,12 @@ class GameState {
                 // 隐藏动物选择界面
                 animalSelectionScreen.classList.add('hidden');
                 
+                // 显示游戏控制按钮
+                const gameControls = document.getElementById('game-controls');
+                if (gameControls) {
+                    gameControls.classList.remove('hidden');
+                }
+                
                 // 生成游戏内容
                 this.generateAnimalContent();
                 
@@ -810,13 +829,6 @@ class GameState {
             animalCards.forEach(c => c.classList.remove('selected'));
             this.selectedAnimal = null;
             confirmAnimalBtn.disabled = true;
-        });
-        
-        // 游戏说明界面 - 返回按钮
-        const backFromRulesBtn = document.getElementById('back-from-rules-btn');
-        backFromRulesBtn.addEventListener('click', () => {
-            gameRulesScreen.classList.add('hidden');
-            gameLobby.classList.remove('hidden');
         });
     }
     
@@ -848,6 +860,76 @@ class GameState {
         document.querySelector('.restart-btn').addEventListener('click', () => {
             this.restart();
         });
+        
+        // 暂停游戏按钮
+        const pauseBtn = document.getElementById('pause-game-btn');
+        if (pauseBtn) {
+            pauseBtn.addEventListener('click', () => {
+                this.togglePause();
+            });
+        }
+        
+        // 退出游戏按钮
+        const exitBtn = document.getElementById('exit-game-btn');
+        if (exitBtn) {
+            exitBtn.addEventListener('click', () => {
+                this.exitGame();
+            });
+        }
+    }
+    
+    togglePause() {
+        this.isRunning = !this.isRunning;
+        const pauseBtn = document.getElementById('pause-game-btn');
+        if (pauseBtn) {
+            pauseBtn.textContent = this.isRunning ? '⏸️ 暂停' : '▶️ 继续';
+        }
+        if (this.isRunning) {
+            this.gameLoop();
+        }
+    }
+    
+    exitGame() {
+        // 确认退出
+        if (confirm('确定要退出当前游戏吗？进度将不会保存。')) {
+            this.isRunning = false;
+            this.gameStarted = false;
+            
+            // 隐藏游戏控制按钮
+            const gameControls = document.getElementById('game-controls');
+            if (gameControls) {
+                gameControls.classList.add('hidden');
+            }
+            
+            // 返回游戏大厅
+            const gameLobby = document.getElementById('game-lobby');
+            if (gameLobby) {
+                gameLobby.classList.remove('hidden');
+            }
+            
+            // 重置游戏状态
+            this.currentMap = 0;
+            this.health = 10;
+            this.correctAnswers = 0;
+            this.totalQuestions = 0;
+            this.selectedAnimal = null;
+            this.currentAnimal = null;
+            this.player.x = 50;
+            this.player.y = 300;
+            this.player.animal = null;
+            this.maps = [];
+            
+            // 重置动物卡片选择状态
+            document.querySelectorAll('.animal-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // 禁用确认按钮
+            const confirmBtn = document.getElementById('confirm-animal-btn');
+            if (confirmBtn) {
+                confirmBtn.disabled = true;
+            }
+        }
     }
     
     updatePlayer() {
