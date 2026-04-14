@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>洋流探究式学习</title>
+    <link rel="stylesheet" href="ocean-explore.css">
+</head>
+<body>
+    <div class="explore-container">
+        <!-- 顶部导航 -->
+        <header class="explore-header">
+            <button class="back-btn" id="back-btn">← 返回选择</button>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div class="chapter-info">
+                <span id="chapter-title">第1章：观察与发现</span>
+            </div>
+        </header>
+
+        <!-- 主内容区 -->
+        <main class="explore-main">
+            <!-- 章节选择界面 -->
+            <div id="chapter-select" class="screen">
+                <div class="chapter-select-content">
+                    <h1 class="explore-title">🔬 洋流探究式学习</h1>
+                    <p class="explore-subtitle">像科学家一样探索洋流的奥秘</p>
+                    
+                    <div class="chapters-grid">
+                        <div class="chapter-card" data-chapter="1">
+                            <div class="chapter-number">01</div>
+                            <div class="chapter-icon">🌡️</div>
+                            <h3>观察与发现</h3>
+                            <p>暖流与寒流的秘密</p>
+                            <div class="chapter-tasks">
+                                <span>📍 5个探究任务</span>
+                                <span>⏱️ 约8分钟</span>
+                            </div>
+                        </div>
+
+                        <div class="chapter-card locked" data-chapter="2">
+                            <div class="chapter-number">02</div>
+                            <div class="chapter-icon">💨</div>
+                            <h3>实验探索</h3>
+                            <p>洋流是怎么形成的？</p>
+                            <div class="chapter-tasks">
+                                <span>🔒 完成第1章解锁</span>
+                            </div>
+                        </div>
+
+                        <div class="chapter-card locked" data-chapter="3">
+                            <div class="chapter-number">03</div>
+                            <div class="chapter-icon">🗺️</div>
+                            <h3>地图探险</h3>
+                            <p>发现洋流分布规律</p>
+                            <div class="chapter-tasks">
+                                <span>🔒 完成第2章解锁</span>
+                            </div>
+                        </div>
+
+                        <div class="chapter-card locked" data-chapter="4">
+                            <div class="chapter-number">04</div>
+                            <div class="chapter-icon">🎯</div>
+                            <h3>案例分析</h3>
+                            <p>洋流的影响</p>
+                            <div class="chapter-tasks">
+                                <span>🔒 完成第3章解锁</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 探究任务界面 -->
+            <div id="task-screen" class="screen hidden">
+                <div class="task-content">
+                    <!-- 任务标题 -->
+                    <div class="task-header">
+                        <h2 id="task-title">任务1：测量海水温度</h2>
+                        <div class="task-progress">
+                            <span id="task-number">1/5</span>
+                        </div>
+                    </div>
+
+                    <!-- 互动区域 -->
+                    <div class="interactive-area">
+                        <canvas id="explore-canvas" width="900" height="500"></canvas>
+                        <div class="controls-panel" id="controls-panel">
+                            <!-- 控制面板内容将动态生成 -->
+                        </div>
+                    </div>
+
+                    <!-- 观察记录区 -->
+                    <div class="observation-area">
+                        <h3>📝 观察记录</h3>
+                        <div id="observation-log"></div>
+                    </div>
+
+                    <!-- 思考问题 -->
+                    <div class="thinking-area" id="thinking-area">
+                        <h3>💭 思考一下</h3>
+                        <p id="thinking-question"></p>
+                        <div class="answer-input">
+                            <textarea id="answer-input" placeholder="写下你的想法..."></textarea>
+                            <button class="submit-btn" id="submit-answer">提交想法</button>
+                        </div>
+                    </div>
+
+                    <!-- 知识总结 -->
+                    <div class="summary-area hidden" id="summary-area">
+                        <h3>✨ 知识总结</h3>
+                        <div id="summary-content"></div>
+                        <button class="next-task-btn" id="next-task-btn">下一个任务</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 章节完成界面 -->
+            <div id="chapter-complete" class="screen hidden">
+                <div class="complete-content">
+                    <div class="complete-icon">🎉</div>
+                    <h2>章节完成！</h2>
+                    <div class="complete-summary">
+                        <h3>你学到了什么？</h3>
+                        <div id="learning-summary"></div>
+                    </div>
+                    <div class="complete-actions">
+                        <button class="btn-primary" id="next-chapter-btn">下一章</button>
+                        <button class="btn-secondary" id="back-to-chapters-btn">返回章节选择</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="ocean-explore.js"></script>
+</body>
+</html>
