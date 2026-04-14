@@ -34,6 +34,54 @@
 
         <!-- 游戏主区域 -->
         <main class="game-main">
+            <!-- 开始界面 -->
+            <div id="start-screen" class="start-screen">
+                <div class="start-content">
+                    <h1 class="game-title">🌍 动物地理大冒险 🦁</h1>
+                    <div class="game-description">
+                        <h2>游戏说明</h2>
+                        <ul>
+                            <li>🎮 使用方向键 ↑↓←→ 控制动物移动</li>
+                            <li>📚 碰到障碍物会触发地理知识问答</li>
+                            <li>⏱️ 每题限时10秒，答错扣1点生命值</li>
+                            <li>🗺️ 完成3张地图即可通关</li>
+                            <li>❤️ 生命值归零游戏结束</li>
+                        </ul>
+                    </div>
+                    <div class="animal-selection">
+                        <h2>选择你的动物伙伴</h2>
+                        <div class="animal-cards">
+                            <div class="animal-card" data-animal="penguin">
+                                <div class="animal-icon">🐧</div>
+                                <h3>企鹅</h3>
+                                <p>探索南极冰原</p>
+                            </div>
+                            <div class="animal-card" data-animal="panda">
+                                <div class="animal-icon">🐼</div>
+                                <h3>大熊猫</h3>
+                                <p>穿越竹林秘境</p>
+                            </div>
+                            <div class="animal-card" data-animal="camel">
+                                <div class="animal-icon">🐫</div>
+                                <h3>骆驼</h3>
+                                <p>横跨沙漠绿洲</p>
+                            </div>
+                            <div class="animal-card" data-animal="kangaroo">
+                                <div class="animal-icon">🦘</div>
+                                <h3>袋鼠</h3>
+                                <p>跳跃澳洲内陆</p>
+                            </div>
+                            <div class="animal-card" data-animal="polar_bear">
+                                <div class="animal-icon">🐻‍❄️</div>
+                                <h3>北极熊</h3>
+                                <p>征服北极冰原</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="start-btn" id="start-game-btn">开始冒险</button>
+                </div>
+            </div>
+
             <div class="canvas-container">
                 <canvas id="game-canvas" width="1200" height="600"></canvas>
             </div>

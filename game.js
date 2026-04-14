@@ -52,8 +52,9 @@ class GameState {
             }
         };
         
-        // 随机选择当前动物
-        this.currentAnimal = this.getRandomAnimal();
+        // 当前选择的动物（初始为null，等待用户选择）
+        this.currentAnimal = null;
+        this.selectedAnimal = null;
         
         // 当前动物角色
         this.player = {
@@ -62,7 +63,7 @@ class GameState {
             width: 32,
             height: 32,
             speed: 4,
-            animal: this.currentAnimal
+            animal: null
         };
         
         // 键盘状态
@@ -75,6 +76,9 @@ class GameState {
         
         // RPG风格地图数据 - 将被动物系统动态生成
         this.maps = [];
+        
+        // 游戏是否已开始
+        this.gameStarted = false;
         
         // 大型栖息地理题库
         this.habitatQuestionBank = {
@@ -726,13 +730,51 @@ class GameState {
     }
     
     init() {
-        // 先生成动物内容和地图
-        this.generateAnimalContent();
+        // 设置开始界面的事件监听
+        this.setupStartScreen();
         
-        // 然后设置事件监听器和UI
+        // 设置游戏事件监听器
         this.setupEventListeners();
-        this.updateUI();
-        this.gameLoop();
+    }
+    
+    setupStartScreen() {
+        const startScreen = document.getElementById('start-screen');
+        const startBtn = document.getElementById('start-game-btn');
+        const animalCards = document.querySelectorAll('.animal-card');
+        
+        // 动物卡片选择
+        animalCards.forEach(card => {
+            card.addEventListener('click', () => {
+                // 移除其他卡片的选中状态
+                animalCards.forEach(c => c.classList.remove('selected'));
+                // 添加当前卡片的选中状态
+                card.classList.add('selected');
+                // 保存选择的动物
+                this.selectedAnimal = card.dataset.animal;
+                // 启用开始按钮
+                startBtn.disabled = false;
+            });
+        });
+        
+        // 开始游戏按钮
+        startBtn.disabled = true;
+        startBtn.addEventListener('click', () => {
+            if (this.selectedAnimal) {
+                this.currentAnimal = this.selectedAnimal;
+                this.player.animal = this.currentAnimal;
+                
+                // 隐藏开始界面
+                startScreen.classList.add('hidden');
+                
+                // 生成游戏内容
+                this.generateAnimalContent();
+                
+                // 更新UI并启动游戏
+                this.updateUI();
+                this.gameStarted = true;
+                this.gameLoop();
+            }
+        });
     }
     
     setupEventListeners() {
@@ -966,38 +1008,37 @@ class GameState {
     
     restart() {
         // 重置游戏状态
-        this.health = this.maxHealth;
+        this.currentMap = 0;
+        this.health = 10;
         this.correctAnswers = 0;
         this.totalQuestions = 0;
-        this.currentMap = 0;
         this.isRunning = true;
+        this.gameStarted = false;
+        this.selectedAnimal = null;
+        this.currentAnimal = null;
         
-        // 重新随机选择动物
-        this.currentAnimal = this.getRandomAnimal();
-        this.player.animal = this.currentAnimal;
+        // 重置玩家位置
+        this.player.x = 50;
+        this.player.y = 300;
+        this.player.animal = null;
         
-        // 重新生成地图和题目
-        this.generateAnimalContent();
-        this.randomizeQuestions();
-        
-        // 重置玩家位置到第一张地图的起点
-        const firstMapData = this.maps[0];
-        this.player.x = firstMapData.startX;
-        this.player.y = firstMapData.startY;
-        
-        // 重置地图进度
-        this.maps.forEach(map => {
-            map.completed = [];
-        });
+        // 清空地图
+        this.maps = [];
         
         // 隐藏游戏结束界面
         document.getElementById('game-over').classList.add('hidden');
         
-        // 更新UI
-        this.updateUI();
+        // 显示开始界面
+        const startScreen = document.getElementById('start-screen');
+        startScreen.classList.remove('hidden');
         
-        // 重新开始游戏循环
-        this.gameLoop();
+        // 重置动物卡片选择状态
+        document.querySelectorAll('.animal-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        
+        // 禁用开始按钮
+        document.getElementById('start-game-btn').disabled = true;
     }
     
     draw() {
@@ -1539,7 +1580,7 @@ class GameState {
     }
     
     gameLoop() {
-        if (!this.isRunning) return;
+        if (!this.isRunning || !this.gameStarted) return;
         
         this.updatePlayer();
         this.draw();
