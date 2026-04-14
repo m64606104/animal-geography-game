@@ -751,9 +751,11 @@ class GameState {
         
         // 游戏大厅 - 专题学习按钮
         const specialTopicsBtn = document.getElementById('special-topics-btn');
-        specialTopicsBtn.addEventListener('click', () => {
-            window.location.href = 'ocean-currents.html';
-        });
+        if (specialTopicsBtn) {
+            specialTopicsBtn.addEventListener('click', () => {
+                window.location.href = 'ocean-currents.html';
+            });
+        }
         
         // 游戏大厅 - 游戏说明按钮
         const gameRulesBtn = document.getElementById('game-rules-btn');
