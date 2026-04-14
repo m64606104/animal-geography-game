@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>洋流大冒险 - 答题闯关</title>
+    <link rel="stylesheet" href="ocean-currents.css">
+    <script src="ocean-adventure.js"></script>
+</head>
+<body>
+    <div class="ocean-container">
+        <!-- 顶部信息栏 -->
+        <header class="ocean-header">
+            <button class="back-home-btn" id="back-home">🏠 返回主页</button>
+            <div class="header-title">
+                <h1>🌊 洋流专题学习</h1>
+            </div>
+        </header>
+
+        <!-- 主选择区域 -->
+        <main class="ocean-main">
+            <!-- 学习模块选择 -->
+            <div class="module-select-screen">
+                <div class="level-select-content">
+                    <h1 class="ocean-title">🌊 洋流大冒险 🚢</h1>
+                    <p class="ocean-subtitle">驾驶小船，探索洋流奥秘</p>
+                    
+                    <div class="modules-grid">
+                        <!-- 探究式学习模块 -->
+                        <div class="module-card explore-module" id="explore-module">
+                            <div class="module-badge">推荐先学</div>
+                            <div class="module-icon">🔬</div>
+                            <h2>探究式学习</h2>
+                            <p class="module-desc">像科学家一样探索洋流奥秘</p>
+                            <div class="module-features">
+                                <div class="feature-item">🌡️ 观察实验</div>
+                                <div class="feature-item">🗺️ 地图探索</div>
+                                <div class="feature-item">💡 推理发现</div>
+                                <div class="feature-item">� 数据分析</div>
+                            </div>
+                            <div class="module-info">
+                                <span class="duration">⏱️ 约30分钟</span>
+                                <span class="difficulty">难度: ⭐⭐⭐</span>
+                            </div>
+                            <button class="module-btn explore-btn">开始探究</button>
+                        </div>
+                        
+                        <!-- 洋流大冒险模块 -->
+                        <div class="module-card adventure-module" id="adventure-module">
+                            <div class="module-badge">巩固检验</div>
+                            <div class="module-icon">🚢</div>
+                            <h2>洋流大冒险</h2>
+                            <p class="module-desc">驾驶小船，通过答题检验学习成果</p>
+                            <div class="module-features">
+                                <div class="feature-item">🎮 5个关卡</div>
+                                <div class="feature-item">📝 98道题目</div>
+                                <div class="feature-item">⭐ 星级评价</div>
+                                <div class="feature-item">💎 收集宝石</div>
+                            </div>
+                            <div class="module-info">
+                                <span class="duration">⏱️ 约20分钟</span>
+                                <span class="difficulty">难度: ⭐⭐</span>
+                            </div>
+                            <button class="module-btn adventure-btn">开始冒险</button>
+                        </div>
+                    </div>
+                    
+                    <div class="learning-tips">
+                        <h3>💡 学习建议</h3>
+                        <p>建议先完成<strong>探究式学习</strong>，深入理解洋流知识，再通过<strong>洋流大冒险</strong>巩固和检验学习成果。</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 返回主页
+        document.getElementById('back-home').addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+        
+        // 探究式学习
+        document.getElementById('explore-module').addEventListener('click', () => {
+            window.location.href = 'ocean-explore.html';
+        });
+        
+        document.querySelector('.explore-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            window.location.href = 'ocean-explore.html';
+        });
+        
+        // 洋流大冒险
+        document.getElementById('adventure-module').addEventListener('click', () => {
+            window.location.href = 'ocean-adventure.html';
+        });
+        
+        document.querySelector('.adventure-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            window.location.href = 'ocean-adventure.html';
+        });
+    </script>
+</body>
+</html>

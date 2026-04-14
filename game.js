@@ -755,7 +755,7 @@ class GameState {
             specialTopicsBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 console.log('专题学习按钮被点击');
-                window.location.href = 'ocean-currents.html';
+                window.location.href = 'ocean-select.html';
             });
         } else {
             console.error('找不到专题学习按钮');
