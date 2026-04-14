@@ -11,11 +11,11 @@ class OceanExploreSystem {
         
         // 科考船状态
         this.ship = {
-            x: 100,
+            x: 450,
             y: 250,
-            targetX: 100,
+            targetX: 450,
             targetY: 250,
-            speed: 2,
+            speed: 5,
             angle: 0
         };
         
@@ -44,27 +44,35 @@ class OceanExploreSystem {
     }
     
     initParticles() {
-        // 暖流粒子（红色区域）
-        for (let i = 0; i < 50; i++) {
+        // 暖流粒子（沿曲线分布，向上流动）
+        for (let i = 0; i < 60; i++) {
+            const t = Math.random();
+            // 沿暖流曲线分布
+            const baseX = 100 + t * 150;
+            const baseY = 450 - t * 350;
             this.particles.push({
-                x: 100 + Math.random() * 250,
-                y: Math.random() * 500,
-                vx: 1 + Math.random(),
-                vy: (Math.random() - 0.5) * 0.5,
+                x: baseX + (Math.random() - 0.5) * 80,
+                y: baseY + (Math.random() - 0.5) * 80,
+                vx: 0.3 + Math.random() * 0.3,
+                vy: -1.5 - Math.random(),
                 type: 'warm',
-                size: 2 + Math.random() * 2
+                size: 2 + Math.random() * 3
             });
         }
         
-        // 寒流粒子（蓝色区域）
-        for (let i = 0; i < 50; i++) {
+        // 寒流粒子（沿曲线分布，向下流动）
+        for (let i = 0; i < 60; i++) {
+            const t = Math.random();
+            // 沿寒流曲线分布
+            const baseX = 800 - t * 200;
+            const baseY = 80 + t * 350;
             this.particles.push({
-                x: 550 + Math.random() * 250,
-                y: Math.random() * 500,
-                vx: -1 - Math.random(),
-                vy: (Math.random() - 0.5) * 0.5,
+                x: baseX + (Math.random() - 0.5) * 80,
+                y: baseY + (Math.random() - 0.5) * 80,
+                vx: -0.3 - Math.random() * 0.3,
+                vy: 1.5 + Math.random(),
                 type: 'cold',
-                size: 2 + Math.random() * 2
+                size: 2 + Math.random() * 3
             });
         }
     }
@@ -82,8 +90,11 @@ class OceanExploreSystem {
             if (this.taskStage !== 'interact') return;
             
             const rect = this.canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+            // 修复坐标计算，考虑canvas缩放
+            const scaleX = this.canvas.width / rect.width;
+            const scaleY = this.canvas.height / rect.height;
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top) * scaleY;
             
             this.handleCanvasClick(x, y);
         });
@@ -174,17 +185,24 @@ class OceanExploreSystem {
             p.x += p.vx;
             p.y += p.vy;
             
-            // 边界检查
+            // 边界检查 - 重新生成粒子位置
             if (p.type === 'warm') {
-                if (p.x > 350) p.x = 100;
-                if (p.x < 100) p.x = 350;
+                // 暖流向上流动，到顶部后重新从底部出现
+                if (p.y < 50) {
+                    p.y = 480;
+                    p.x = 80 + Math.random() * 100;
+                }
+                if (p.x > 350) p.x = 80;
+                if (p.x < 50) p.x = 300;
             } else {
-                if (p.x < 550) p.x = 800;
-                if (p.x > 800) p.x = 550;
+                // 寒流向下流动，到底部后重新从顶部出现
+                if (p.y > 450) {
+                    p.y = 50;
+                    p.x = 750 + Math.random() * 100;
+                }
+                if (p.x < 550) p.x = 850;
+                if (p.x > 880) p.x = 600;
             }
-            
-            if (p.y < 0) p.y = 500;
-            if (p.y > 500) p.y = 0;
         });
     }
     
@@ -232,43 +250,80 @@ class OceanExploreSystem {
     }
     
     drawCurrentZones() {
-        // 暖流区域（红色）
-        const warmGradient = this.ctx.createLinearGradient(100, 0, 350, 0);
-        warmGradient.addColorStop(0, 'rgba(239, 68, 68, 0.3)');
-        warmGradient.addColorStop(1, 'rgba(239, 68, 68, 0.5)');
+        // 暖流区域（自然曲线形状）
+        this.ctx.save();
+        
+        // 暖流 - 从左下到右上的弯曲带状
+        const warmGradient = this.ctx.createRadialGradient(180, 300, 20, 180, 300, 150);
+        warmGradient.addColorStop(0, 'rgba(239, 68, 68, 0.6)');
+        warmGradient.addColorStop(0.5, 'rgba(239, 68, 68, 0.3)');
+        warmGradient.addColorStop(1, 'rgba(239, 68, 68, 0.05)');
+        
         this.ctx.fillStyle = warmGradient;
-        this.ctx.fillRect(100, 100, 250, 300);
+        this.ctx.beginPath();
+        this.ctx.moveTo(50, 450);
+        this.ctx.bezierCurveTo(100, 350, 150, 250, 180, 150);
+        this.ctx.bezierCurveTo(200, 80, 280, 50, 350, 80);
+        this.ctx.bezierCurveTo(320, 150, 280, 250, 250, 350);
+        this.ctx.bezierCurveTo(220, 420, 150, 480, 50, 450);
+        this.ctx.fill();
         
-        // 边框
-        this.ctx.strokeStyle = '#ef4444';
+        // 暖流箭头方向指示
+        this.ctx.strokeStyle = 'rgba(239, 68, 68, 0.8)';
         this.ctx.lineWidth = 3;
-        this.ctx.strokeRect(100, 100, 250, 300);
+        this.ctx.setLineDash([10, 5]);
+        this.ctx.beginPath();
+        this.ctx.moveTo(100, 400);
+        this.ctx.quadraticCurveTo(180, 250, 250, 100);
+        this.ctx.stroke();
+        this.ctx.setLineDash([]);
         
-        // 标签
-        this.ctx.fillStyle = 'white';
-        this.ctx.font = 'bold 24px Arial';
+        // 暖流标签
+        this.ctx.fillStyle = '#dc2626';
+        this.ctx.font = 'bold 18px Arial';
         this.ctx.textAlign = 'center';
-        this.ctx.shadowColor = 'rgba(0,0,0,0.5)';
-        this.ctx.shadowBlur = 4;
-        this.ctx.fillText('暖流区域', 225, 260);
-        this.ctx.shadowBlur = 0;
+        this.ctx.fillText('暖流', 180, 280);
+        this.ctx.font = '12px Arial';
+        this.ctx.fillText('(向高纬度流动)', 180, 300);
         
-        // 寒流区域（蓝色）
-        const coldGradient = this.ctx.createLinearGradient(550, 0, 800, 0);
-        coldGradient.addColorStop(0, 'rgba(59, 130, 246, 0.3)');
-        coldGradient.addColorStop(1, 'rgba(59, 130, 246, 0.5)');
+        // 寒流区域（自然曲线形状）
+        const coldGradient = this.ctx.createRadialGradient(720, 200, 20, 720, 200, 150);
+        coldGradient.addColorStop(0, 'rgba(59, 130, 246, 0.6)');
+        coldGradient.addColorStop(0.5, 'rgba(59, 130, 246, 0.3)');
+        coldGradient.addColorStop(1, 'rgba(59, 130, 246, 0.05)');
+        
         this.ctx.fillStyle = coldGradient;
-        this.ctx.fillRect(550, 100, 250, 300);
+        this.ctx.beginPath();
+        this.ctx.moveTo(850, 50);
+        this.ctx.bezierCurveTo(800, 100, 750, 200, 720, 300);
+        this.ctx.bezierCurveTo(700, 380, 620, 450, 550, 420);
+        this.ctx.bezierCurveTo(600, 350, 650, 250, 680, 150);
+        this.ctx.bezierCurveTo(700, 80, 780, 30, 850, 50);
+        this.ctx.fill();
         
-        this.ctx.strokeStyle = '#3b82f6';
+        // 寒流箭头方向指示
+        this.ctx.strokeStyle = 'rgba(59, 130, 246, 0.8)';
         this.ctx.lineWidth = 3;
-        this.ctx.strokeRect(550, 100, 250, 300);
+        this.ctx.setLineDash([10, 5]);
+        this.ctx.beginPath();
+        this.ctx.moveTo(800, 80);
+        this.ctx.quadraticCurveTo(720, 230, 600, 400);
+        this.ctx.stroke();
+        this.ctx.setLineDash([]);
         
-        this.ctx.fillStyle = 'white';
-        this.ctx.shadowColor = 'rgba(0,0,0,0.5)';
-        this.ctx.shadowBlur = 4;
-        this.ctx.fillText('寒流区域', 675, 260);
-        this.ctx.shadowBlur = 0;
+        // 寒流标签
+        this.ctx.fillStyle = '#2563eb';
+        this.ctx.font = 'bold 18px Arial';
+        this.ctx.fillText('寒流', 720, 220);
+        this.ctx.font = '12px Arial';
+        this.ctx.fillText('(向低纬度流动)', 720, 240);
+        
+        // 普通海域标签
+        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        this.ctx.font = '14px Arial';
+        this.ctx.fillText('普通海域 (20°C)', 450, 480);
+        
+        this.ctx.restore();
     }
     
     drawParticles() {
@@ -366,46 +421,47 @@ class OceanExploreSystem {
     }
     
     handleCanvasClick(x, y) {
-        // 检查点击的是哪个区域
-        if (x >= 100 && x <= 350 && y >= 100 && y <= 400) {
-            // 暖流区域
-            this.measureArea('warm', x, y);
-        } else if (x >= 550 && x <= 800 && y >= 100 && y <= 400) {
-            // 寒流区域
-            this.measureArea('cold', x, y);
-        } else {
-            // 普通海域
-            this.measureArea('normal', x, y);
-        }
-    }
-    
-    measureArea(type, x, y) {
         // 移动船到点击位置
         this.ship.targetX = x;
         this.ship.targetY = y;
         
-        // 根据位置计算温度（有梯度变化）
-        let temp = 20; // 基准温度
+        // 根据点击位置判断区域类型并计算温度
+        const areaInfo = this.getAreaInfo(x, y);
+        this.measureArea(areaInfo.type, x, y, areaInfo.temp);
+    }
+    
+    getAreaInfo(x, y) {
+        // 暖流区域检测（曲线带状区域）
+        // 暖流中心线大约在 (180, 300) 附近
+        const warmCenterX = 180;
+        const warmCenterY = 300;
+        const warmDist = Math.sqrt(Math.pow(x - warmCenterX, 2) + Math.pow(y - warmCenterY, 2));
         
-        if (type === 'warm') {
-            // 暖流区域：中心最热，边缘接近普通海水
-            const centerX = 225; // 暖流中心
-            const centerY = 250;
-            const distFromCenter = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
-            const maxDist = 125; // 最大距离
-            const heatFactor = Math.max(0, 1 - distFromCenter / maxDist);
-            temp = 20 + 8 * heatFactor; // 20°C到28°C渐变
-        } else if (type === 'cold') {
-            // 寒流区域：中心最冷，边缘接近普通海水
-            const centerX = 675; // 寒流中心
-            const centerY = 250;
-            const distFromCenter = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
-            const maxDist = 125;
-            const coldFactor = Math.max(0, 1 - distFromCenter / maxDist);
-            temp = 20 - 15 * coldFactor; // 20°C到5°C渐变
+        // 寒流区域检测
+        // 寒流中心线大约在 (720, 200) 附近
+        const coldCenterX = 720;
+        const coldCenterY = 200;
+        const coldDist = Math.sqrt(Math.pow(x - coldCenterX, 2) + Math.pow(y - coldCenterY, 2));
+        
+        // 判断在哪个区域
+        if (warmDist < 150 && x < 400) {
+            // 在暖流区域
+            const heatFactor = Math.max(0, 1 - warmDist / 150);
+            const temp = 20 + 8 * heatFactor;
+            return { type: 'warm', temp: Math.round(temp * 10) / 10 };
+        } else if (coldDist < 150 && x > 500) {
+            // 在寒流区域
+            const coldFactor = Math.max(0, 1 - coldDist / 150);
+            const temp = 20 - 15 * coldFactor;
+            return { type: 'cold', temp: Math.round(temp * 10) / 10 };
+        } else {
+            // 普通海域
+            return { type: 'normal', temp: 20 };
         }
-        
-        this.targetTemp = Math.round(temp * 10) / 10; // 保留一位小数
+    }
+    
+    measureArea(type, x, y, temp) {
+        this.targetTemp = temp;
         this.tempTransition = 0;
         
         // 记录测量
@@ -564,12 +620,7 @@ class OceanExploreSystem {
     }
     
     submitAnswer() {
-        const answer = document.getElementById('answer-input').value.trim();
-        
-        if (answer.length < 15) {
-            alert('请写下更详细的想法（至少15个字）');
-            return;
-        }
+        // 不强制写感言，直接可以提交
         
         // 根据任务显示不同的总结
         const summaries = [
