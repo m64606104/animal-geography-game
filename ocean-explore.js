@@ -40,8 +40,7 @@ class OceanExploreSystem {
     
     init() {
         this.setupEventListeners();
-        this.startAnimation();
-        this.showTask(0);
+        this.showChapterSelect();
     }
     
     initParticles() {
@@ -98,6 +97,59 @@ class OceanExploreSystem {
         document.getElementById('next-task-btn').addEventListener('click', () => {
             this.nextTask();
         });
+        
+        // 章节卡片点击
+        document.querySelectorAll('.chapter-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const chapter = parseInt(card.dataset.chapter);
+                if (!card.classList.contains('locked')) {
+                    this.startChapter(chapter);
+                }
+            });
+        });
+        
+        // 返回章节选择
+        const backToChaptersBtn = document.getElementById('back-to-chapters-btn');
+        if (backToChaptersBtn) {
+            backToChaptersBtn.addEventListener('click', () => {
+                this.showChapterSelect();
+            });
+        }
+        
+        // 下一章
+        const nextChapterBtn = document.getElementById('next-chapter-btn');
+        if (nextChapterBtn) {
+            nextChapterBtn.addEventListener('click', () => {
+                this.showChapterSelect();
+            });
+        }
+    }
+    
+    showChapterSelect() {
+        // 显示章节选择界面
+        document.getElementById('chapter-select').classList.remove('hidden');
+        document.getElementById('task-screen').classList.add('hidden');
+        document.getElementById('chapter-complete').classList.add('hidden');
+        
+        // 停止动画
+        this.isAnimating = false;
+    }
+    
+    startChapter(chapter) {
+        // 隐藏章节选择，显示任务界面
+        document.getElementById('chapter-select').classList.add('hidden');
+        document.getElementById('task-screen').classList.remove('hidden');
+        
+        // 初始化粒子（如果还没有）
+        if (this.particles.length === 0) {
+            this.initParticles();
+        }
+        
+        // 开始动画
+        this.startAnimation();
+        
+        // 显示第一个任务
+        this.showTask(0);
     }
     
     startAnimation() {
