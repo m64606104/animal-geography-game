@@ -103,6 +103,8 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative;
+    z-index: 1;
 }
 
 #game-canvas {
@@ -581,7 +583,9 @@ body {
 .home-container {
     width: 100%;
     max-width: 880px;
+    max-height: 100%;
     padding: 20px;
+    overflow-y: auto;
 }
 
 .home-header {
@@ -709,6 +713,17 @@ body {
 .featured-content {
     position: relative;
     z-index: 1;
+    pointer-events: none;
+}
+
+.featured-bg,
+.featured-badge,
+.featured-icon,
+.featured-title,
+.featured-desc,
+.featured-meta,
+.featured-btn {
+    pointer-events: none;
 }
 
 .featured-badge {
@@ -828,6 +843,7 @@ body {
     padding: 15px;
     cursor: pointer;
     transition: all 0.3s;
+    position: relative;
 }
 
 .game-card:hover {
@@ -835,6 +851,16 @@ body {
     transform: translateY(-3px);
     box-shadow: 0 8px 25px rgba(0,0,0,0.3);
     border-color: #6b7280;
+}
+
+.game-card-icon,
+.game-card-content,
+.game-card-content h4,
+.game-card-content p,
+.game-card-tags,
+.game-card-tags span,
+.game-card-play {
+    pointer-events: none;
 }
 
 .game-card-icon {
