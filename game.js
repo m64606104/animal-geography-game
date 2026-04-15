@@ -811,6 +811,12 @@ class GameState {
                     gameControls.classList.remove('hidden');
                 }
                 
+                // 显示顶部和底部游戏信息栏
+                const gameHeader = document.getElementById('game-header');
+                const gameFooter = document.getElementById('game-footer');
+                if (gameHeader) gameHeader.classList.remove('hidden');
+                if (gameFooter) gameFooter.classList.remove('hidden');
+                
                 // 生成游戏内容
                 this.generateAnimalContent();
                 
@@ -900,6 +906,12 @@ class GameState {
             if (gameControls) {
                 gameControls.classList.add('hidden');
             }
+            
+            // 隐藏顶部和底部游戏信息栏
+            const gameHeader = document.getElementById('game-header');
+            const gameFooter = document.getElementById('game-footer');
+            if (gameHeader) gameHeader.classList.add('hidden');
+            if (gameFooter) gameFooter.classList.add('hidden');
             
             // 返回游戏大厅
             const gameLobby = document.getElementById('game-lobby');

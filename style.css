@@ -44,6 +44,10 @@ body {
     font-weight: bold;
 }
 
+.game-header.hidden {
+    display: none;
+}
+
 .health-display {
     display: flex;
     align-items: center;
@@ -241,6 +245,10 @@ body {
     padding: 0 20px;
     color: #ecf0f1;
     font-size: 12px;
+}
+
+.game-footer.hidden {
+    display: none;
 }
 
 .controls {
@@ -754,14 +762,33 @@ body {
     background: rgba(255,255,255,0.3);
 }
 
-/* 小专题卡片 */
+/* 小专题卡片 - 横向滚动 */
 .topic-row {
     display: flex;
     gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.3) transparent;
+}
+
+.topic-row::-webkit-scrollbar {
+    height: 6px;
+}
+
+.topic-row::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.1);
+    border-radius: 3px;
+}
+
+.topic-row::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.3);
+    border-radius: 3px;
 }
 
 .topic-mini {
-    flex: 1;
+    flex: 0 0 auto;
+    min-width: 140px;
     background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
     border: 2px solid #475569;
     border-radius: 10px;
@@ -784,11 +811,13 @@ body {
     font-size: 13px;
     color: white;
     margin-bottom: 2px;
+    white-space: nowrap;
 }
 
 .topic-mini-info span {
     font-size: 10px;
     color: rgba(255,255,255,0.6);
+    white-space: nowrap;
 }
 
 /* 游戏卡片 */
