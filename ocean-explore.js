@@ -1883,14 +1883,14 @@ class OceanExploreSystem {
             }
         }
         
-        // 底部说明
+        // 底部观察提示（不给答案）
         this.ctx.fillStyle = 'rgba(0,0,0,0.7)';
         this.ctx.fillRect(50, 430, 800, 55);
         this.ctx.fillStyle = 'white';
         this.ctx.font = '14px Arial';
         this.ctx.textAlign = 'center';
-        this.ctx.fillText('📌 风海流原理：盛行风持续吹拂海面，通过摩擦力带动表层海水流动', 450, 450);
-        this.ctx.fillText('💡 信风带形成赤道洋流，西风带形成西风漂流', 450, 472);
+        this.ctx.fillText('🔍 观察：调节风向和风力，海水粒子的运动有什么变化？', 450, 450);
+        this.ctx.fillText('💭 思考：风和海水流动之间有什么关系？', 450, 472);
     }
     
     drawChapter2Density() {
@@ -1981,36 +1981,28 @@ class OceanExploreSystem {
         this.ctx.textAlign = 'center';
         this.ctx.fillText('🌡️ 温度与海水密度实验', 450, 40);
         
-        // 对流方向指示
+        // 对流方向指示（只显示箭头，不给结论）
         this.ctx.strokeStyle = '#fbbf24';
         this.ctx.lineWidth = 2;
         if (temp < 15) {
-            // 冷水下沉
+            // 低温时的水流方向
             this.drawArrow(450, 150, 450, 300);
-            this.ctx.fillStyle = '#fbbf24';
-            this.ctx.font = '14px Arial';
-            this.ctx.fillText('冷水下沉', 450, 330);
             this.drawArrow(300, 300, 300, 180);
             this.drawArrow(600, 300, 600, 180);
-            this.ctx.fillText('周围水上升补充', 450, 170);
         } else {
-            // 热水上浮
+            // 高温时的水流方向
             this.drawArrow(450, 300, 450, 150);
-            this.ctx.fillStyle = '#fbbf24';
-            this.ctx.font = '14px Arial';
-            this.ctx.fillText('热水上浮', 450, 140);
             this.drawArrow(300, 150, 300, 280);
             this.drawArrow(600, 150, 600, 280);
-            this.ctx.fillText('周围水下沉补充', 450, 310);
         }
         
-        // 底部说明
+        // 底部观察提示（不给答案）
         this.ctx.fillStyle = 'rgba(0,0,0,0.7)';
         this.ctx.fillRect(50, 420, 800, 65);
         this.ctx.fillStyle = 'white';
         this.ctx.font = '14px Arial';
-        this.ctx.fillText('📌 原理：水温越低，密度越大（4°C时密度最大）', 450, 442);
-        this.ctx.fillText('💡 极地海水冷却下沉，形成深层洋流，这是温盐环流的重要驱动力', 450, 465);
+        this.ctx.fillText('🔍 观察：调节温度，水体的颜色分布和粒子运动有什么变化？', 450, 442);
+        this.ctx.fillText('💭 思考：冷水和热水哪个会下沉？这对海水运动有什么影响？', 450, 465);
     }
     
     drawChapter2Salinity() {
@@ -2086,21 +2078,15 @@ class OceanExploreSystem {
         this.ctx.font = 'bold 14px Arial';
         this.ctx.fillText(`${sal}‰`, 450, dropY + 5);
         
-        // 箭头指示
+        // 箭头指示（只显示方向，不给结论）
         this.ctx.strokeStyle = '#fbbf24';
         this.ctx.lineWidth = 2;
         if (sal > 36) {
             this.drawArrow(450, dropY + 35, 450, dropY + 80);
-            this.ctx.fillStyle = '#fbbf24';
-            this.ctx.fillText('↓ 下沉', 450, dropY + 100);
         } else if (sal < 34) {
             this.drawArrow(450, dropY - 35, 450, dropY - 80);
-            this.ctx.fillStyle = '#fbbf24';
-            this.ctx.fillText('↑ 上浮', 450, dropY - 90);
-        } else {
-            this.ctx.fillStyle = '#22c55e';
-            this.ctx.fillText('≈ 悬浮', 510, dropY);
         }
+        // 不显示"下沉"、"上浮"等结论性文字
         
         this.ctx.fillStyle = 'white';
         this.ctx.font = '14px Arial';
@@ -2132,11 +2118,11 @@ class OceanExploreSystem {
         this.ctx.fillStyle = 'white';
         this.ctx.font = '12px Arial';
         this.ctx.textAlign = 'left';
-        this.ctx.fillText('低盐度 (30‰)', 150, 480);
+        this.ctx.fillText('🔍 观察水滴位置变化', 110, 440);
+        this.ctx.fillText('💭 盐度如何影响海水密度？', 110, 458);
+        
         this.ctx.textAlign = 'center';
-        this.ctx.fillText('标准海水 (35‰)', 450, 480);
-        this.ctx.textAlign = 'right';
-        this.ctx.fillText('高盐度 (40‰)', 750, 480);
+        this.ctx.fillText('低盐度 ←————— 密度 —————→ 高盐度', 450, 480);
     }
     
     drawChapter2Compensation() {
@@ -2238,15 +2224,23 @@ class OceanExploreSystem {
             this.ctx.fillText('💨 离岸风', 550, 100);
         }
         
-        // 图例
+        // 图例和观察提示
         this.ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        this.ctx.fillRect(650, 420, 230, 70);
+        this.ctx.fillRect(20, 420, 400, 70);
         this.ctx.fillStyle = 'white';
         this.ctx.font = '12px Arial';
         this.ctx.textAlign = 'left';
-        this.ctx.fillText('🟡 水平补偿流', 660, 445);
-        this.ctx.fillText('🔵 上升流（带来营养物质）', 660, 465);
-        this.ctx.fillText('🟢 陆地', 660, 485);
+        this.ctx.fillText('🔍 观察：海水被抽走后，周围发生了什么？', 30, 445);
+        this.ctx.fillText('💭 思考：这种现象在真实海洋中会如何发生？', 30, 465);
+        this.ctx.fillText('       对海洋生物有什么影响？', 30, 485);
+        
+        // 简单图例
+        this.ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        this.ctx.fillRect(700, 420, 180, 70);
+        this.ctx.fillStyle = 'white';
+        this.ctx.fillText('🟡 水平方向流动', 710, 445);
+        this.ctx.fillText('🔵 垂直方向流动', 710, 465);
+        this.ctx.fillText('🟢 陆地', 710, 485);
     }
     
     // 绘制箭头辅助方法

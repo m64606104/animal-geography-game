@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>动物地理大冒险</title>
+    <title>地理探究学习平台</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="game-container">
-        <!-- 顶部信息栏 -->
-        <header class="game-header">
+        <!-- 顶部信息栏 - 仅在游戏中显示 -->
+        <header class="game-header hidden" id="game-header">
             <div class="health-display">
                 <span class="health-label">生命值:</span>
                 <div class="hearts">
@@ -34,24 +34,66 @@
 
         <!-- 游戏主区域 -->
         <main class="game-main">
-            <!-- 游戏大厅 -->
+            <!-- 主页大厅 - 重新设计 -->
             <div id="game-lobby" class="game-lobby">
-                <div class="lobby-content">
-                    <h1 class="game-title">🌍 动物地理大冒险 🦁</h1>
-                    <p class="game-subtitle">探索世界，学习地理知识</p>
-                    <div class="lobby-menu">
-                        <button class="menu-btn" id="start-game-menu-btn">
-                            <span class="btn-icon">🎮</span>
-                            <span class="btn-text">开始游戏</span>
-                        </button>
-                        <button class="menu-btn" id="special-topics-btn">
-                            <span class="btn-icon">🌊</span>
-                            <span class="btn-text">专题学习</span>
-                        </button>
-                        <button class="menu-btn" id="game-rules-btn">
-                            <span class="btn-icon">📖</span>
-                            <span class="btn-text">游戏说明</span>
-                        </button>
+                <div class="lobby-content lobby-redesign">
+                    <h1 class="main-title">🌍 地理探究学习平台</h1>
+                    <p class="main-subtitle">像科学家一样探索地理的奥秘</p>
+                    
+                    <!-- 专题学习区域 - 主要内容 -->
+                    <div class="topics-section">
+                        <h2 class="section-title">📚 专题学习</h2>
+                        <div class="topics-grid">
+                            <a href="ocean-explore.html" class="topic-card topic-primary">
+                                <div class="topic-icon">�</div>
+                                <div class="topic-info">
+                                    <h3>洋流探究</h3>
+                                    <p>探索洋流的形成、分布与影响</p>
+                                    <div class="topic-meta">
+                                        <span>📖 5个章节</span>
+                                        <span>⏱️ 约45分钟</span>
+                                    </div>
+                                </div>
+                                <div class="topic-badge">推荐</div>
+                            </a>
+                            <div class="topic-card topic-locked">
+                                <div class="topic-icon">🏔️</div>
+                                <div class="topic-info">
+                                    <h3>地形地貌</h3>
+                                    <p>认识山脉、平原、高原的形成</p>
+                                    <div class="topic-meta">
+                                        <span>🔒 即将上线</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="topic-card topic-locked">
+                                <div class="topic-icon">�️</div>
+                                <div class="topic-info">
+                                    <h3>气候系统</h3>
+                                    <p>了解全球气候类型与分布</p>
+                                    <div class="topic-meta">
+                                        <span>🔒 即将上线</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分隔线 -->
+                    <div class="section-divider">
+                        <span>🎮 休闲娱乐</span>
+                    </div>
+                    
+                    <!-- 小游戏区域 - 次要内容 -->
+                    <div class="games-section">
+                        <div class="mini-game-card" id="start-game-menu-btn">
+                            <div class="mini-game-icon">🦁</div>
+                            <div class="mini-game-info">
+                                <h4>动物地理大冒险</h4>
+                                <p>选择动物伙伴，穿越地图，回答地理问题</p>
+                            </div>
+                            <div class="mini-game-badge">小游戏</div>
+                        </div>
                     </div>
                 </div>
             </div>
