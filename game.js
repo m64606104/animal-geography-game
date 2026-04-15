@@ -19,35 +19,35 @@ class GameState {
                 name: '企鹅',
                 emoji: '🐧',
                 habitat: 'antarctica',
-                maps: ['antarctica_ice_sheet', 'antarctica_peninsula', 'ross_sea', 'antarctica_plateau', 'research_station'],
+                maps: ['antarctica', 'antarctica', 'antarctica', 'antarctica', 'antarctica'],
                 description: '生活在南极的可爱鸟类'
             },
             panda: {
                 name: '大熊猫',
                 emoji: '🐼',
                 habitat: 'bamboo_forest',
-                maps: ['sichuan_basin', 'qinling_mountains', 'minjiang_valley', 'bamboo_forest', 'nature_reserve'],
+                maps: ['bamboo_forest', 'bamboo_forest', 'bamboo_forest', 'bamboo_forest', 'bamboo_forest'],
                 description: '中国国宝，爱吃竹子'
             },
             camel: {
                 name: '骆驼',
                 emoji: '🐫',
                 habitat: 'desert',
-                maps: ['taklamakan_desert', 'desert_oasis', 'gobi_desert', 'desert_edge', 'silk_road'],
+                maps: ['desert', 'desert', 'desert', 'desert', 'desert'],
                 description: '沙漠之舟，耐渴能手'
             },
             kangaroo: {
                 name: '袋鼠',
                 emoji: '🦘',
                 habitat: 'australia',
-                maps: ['great_dividing_range', 'murray_darling_basin', 'great_barrier_reef', 'outback_desert', 'sydney_harbour'],
+                maps: ['australia_outback', 'australia_outback', 'australia_outback', 'australia_outback', 'australia_outback'],
                 description: '澳大利亚跳跃大师'
             },
             polar_bear: {
                 name: '北极熊',
                 emoji: '🐻‍❄️',
                 habitat: 'arctic',
-                maps: ['arctic_ocean_ice', 'greenland', 'tundra_zone', 'arctic_circle', 'inuit_village'],
+                maps: ['arctic_ice', 'arctic_ice', 'arctic_ice', 'arctic_ice', 'arctic_ice'],
                 description: '北极霸主，游泳健将'
             }
         };
