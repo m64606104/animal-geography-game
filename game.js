@@ -44,19 +44,82 @@ class AnimalGame {
         // 地图配置
         this.maps = [];
         
-        // 题库
-        this.questions = [
-            { q: '南极洲属于哪个板块？', options: ['A. 太平洋板块', 'B. 南极洲板块', 'C. 印度洋板块', 'D. 大西洋板块'], answer: 'B' },
-            { q: '南极洲的面积大约是？', options: ['A. 1400万km²', 'B. 2400万km²', 'C. 3400万km²', 'D. 4400万km²'], answer: 'A' },
-            { q: '企鹅主要分布在哪个半球？', options: ['A. 北半球', 'B. 南半球', 'C. 赤道', 'D. 全球'], answer: 'B' },
-            { q: '大熊猫主要分布在中国的哪个省？', options: ['A. 四川', 'B. 云南', 'C. 贵州', 'D. 湖南'], answer: 'A' },
-            { q: '竹子属于哪种植物类型？', options: ['A. 草本植物', 'B. 木本植物', 'C. 藤本植物', 'D. 苔藓植物'], answer: 'A' },
-            { q: '世界最大的沙漠是？', options: ['A. 撒哈拉沙漠', 'B. 戈壁沙漠', 'C. 阿塔卡马沙漠', 'D. 南极洲沙漠'], answer: 'D' },
-            { q: '骆驼的驼峰主要储存的是？', options: ['A. 水', 'B. 脂肪', 'C. 蛋白质', 'D. 矿物质'], answer: 'B' },
-            { q: '澳大利亚位于哪个半球？', options: ['A. 北半球', 'B. 南半球', 'C. 跨赤道', 'D. 东半球'], answer: 'B' },
-            { q: '袋鼠属于哪个动物分类？', options: ['A. 灵长类', 'B. 食肉类', 'C. 有袋类', 'D. 啮齿类'], answer: 'C' },
-            { q: '北极圈大约位于哪个纬度？', options: ['A. 66.5°N', 'B. 66.5°S', 'C. 23.5°N', 'D. 23.5°S'], answer: 'A' }
-        ];
+        // 地理题库 - 按场景和题型分类
+        this.questionBank = {
+            // 企鹅 - 南极场景
+            penguin: [
+                // 南极冰盖
+                { q: '眼前的冰盖表面呈现波浪状起伏，这种地貌是？', options: ['A. 冰川槽谷', 'B. 冰丘', 'C. 冰原', 'D. 冰川U型谷'], answer: 'B', type: '地形识别' },
+                { q: '南极冰盖中心年降水量不足50mm，但冰层很厚，主要原因是？', options: ['A. 蒸发量小', 'B. 气温极低', 'C. 风力小', 'D. 地势高'], answer: 'A', type: '气候分析' },
+                { q: '南极冰盖最厚的地方可达4000多米，位于？', options: ['A. 南极半岛', 'B. 罗斯冰架', 'C. 东南极高原', 'D. 西南极'], answer: 'C', type: '区位判断' },
+                { q: '科考站为什么多建在南极边缘而非内陆？', options: ['A. 风景好', 'B. 气温较高便于生活', 'C. 靠近海洋', 'D. 地势平坦'], answer: 'B', type: '人地关系' },
+                { q: '如果南极冰盖全部融化，全球海平面将上升约60米，主要影响？', options: ['A. 山地城市', 'B. 沿海低地', 'C. 高原地区', 'D. 内陆盆地'], answer: 'B', type: '综合应用' },
+                
+                // 南极半岛
+                { q: '南极半岛是南极洲最温暖的地区，主要原因是？', options: ['A. 纬度较低', 'B. 海拔较低', 'C. 洋流影响', 'D. 地热活动'], answer: 'A', type: '气候分析' },
+                { q: '南极半岛夏季气温可达0℃以上，这种气候类型属于？', options: ['A. 极地气候', 'B. 苔原气候', 'C. 冰原气候', 'D. 高山气候'], answer: 'C', type: '气候分析' },
+                { q: '南极半岛附近海域生物丰富，主要原因是？', options: ['A. 水温高', 'B. 营养盐丰富', 'C. 光照强', 'D. 盐度低'], answer: 'B', type: '综合应用' },
+                { q: '南极半岛是企鹅的主要栖息地，企鹅选择此地的原因是？', options: ['A. 食物丰富', 'B. 气候温和', 'C. 天敌少', 'D. 以上都是'], answer: 'D', type: '人地关系' },
+                { q: '南极半岛的冰川地貌主要由什么作用形成？', options: ['A. 流水侵蚀', 'B. 风力侵蚀', 'C. 冰川侵蚀', 'D. 海浪侵蚀'], answer: 'C', type: '地形识别' },
+                
+                // 罗斯海
+                { q: '罗斯海的海冰面积冬季和夏季差异很大，主要原因是？', options: ['A. 气温变化', 'B. 洋流变化', 'C. 降水变化', 'D. 风力变化'], answer: 'A', type: '气候分析' },
+                { q: '罗斯海附近的罗斯冰架是世界最大的冰架，它是？', options: ['A. 海冰', 'B. 陆地冰川延伸到海上', 'C. 冰山', 'D. 海水冻结'], answer: 'B', type: '地形识别' },
+                { q: '罗斯海海域的洋流主要流向是？', options: ['A. 顺时针', 'B. 逆时针', 'C. 向北', 'D. 向南'], answer: 'B', type: '区位判断' },
+                { q: '罗斯海是南极科考的重要区域，主要原因是？', options: ['A. 交通便利', 'B. 气候温和', 'C. 科研价值高', 'D. 资源丰富'], answer: 'C', type: '人地关系' },
+                { q: '罗斯海海冰消融会对全球气候产生什么影响？', options: ['A. 海平面上升', 'B. 反射率降低', 'C. 洋流改变', 'D. 以上都是'], answer: 'D', type: '综合应用' },
+                
+                // 南极高原
+                { q: '南极高原平均海拔超过3000米，气压特点是？', options: ['A. 气压高', 'B. 气压低', 'C. 气压正常', 'D. 气压不稳定'], answer: 'B', type: '气候分析' },
+                { q: '南极高原是地球上最寒冷的地方，最低气温可达？', options: ['A. -60℃', 'B. -70℃', 'C. -80℃', 'D. -90℃'], answer: 'D', type: '区位判断' },
+                { q: '南极高原的冰盖厚度可达4000米，形成原因是？', options: ['A. 降雪累积', 'B. 海水冻结', 'C. 冰川搬运', 'D. 火山喷发'], answer: 'A', type: '地形识别' },
+                { q: '南极高原几乎没有生命存在，主要限制因素是？', options: ['A. 极端低温', 'B. 缺少水源', 'C. 缺少氧气', 'D. 以上都是'], answer: 'D', type: '人地关系' },
+                { q: '南极高原的冰芯记录了地球气候变化历史，可追溯到？', options: ['A. 1万年前', 'B. 10万年前', 'C. 80万年前', 'D. 100万年前'], answer: 'C', type: '综合应用' },
+                
+                // 科考站区
+                { q: '中国在南极建立的第一个科考站是？', options: ['A. 长城站', 'B. 中山站', 'C. 昆仑站', 'D. 泰山站'], answer: 'A', type: '区位判断' },
+                { q: '南极科考站选址的主要考虑因素是？', options: ['A. 交通便利', 'B. 气候相对温和', 'C. 科研价值', 'D. 以上都是'], answer: 'D', type: '人地关系' },
+                { q: '南极科考站的建筑设计需要考虑什么？', options: ['A. 抗风', 'B. 保温', 'C. 防雪', 'D. 以上都是'], answer: 'D', type: '综合应用' },
+                { q: '南极科考主要在哪个季节进行？', options: ['A. 春季', 'B. 夏季', 'C. 秋季', 'D. 冬季'], answer: 'B', type: '气候分析' },
+                { q: '南极科考站的能源主要来自？', options: ['A. 太阳能', 'B. 风能', 'C. 柴油发电', 'D. 地热能'], answer: 'C', type: '人地关系' }
+            ],
+            
+            // 大熊猫 - 中国西南场景
+            panda: [
+                { q: '四川盆地的地形特点是？', options: ['A. 四周高中间低', 'B. 四周低中间高', 'C. 东高西低', 'D. 南高北低'], answer: 'A', type: '地形识别' },
+                { q: '四川盆地的气候类型是？', options: ['A. 热带季风', 'B. 亚热带季风', 'C. 温带季风', 'D. 高原气候'], answer: 'B', type: '气候分析' },
+                { q: '秦岭是中国重要的地理分界线，它分隔了？', options: ['A. 南方和北方', 'B. 东部和西部', 'C. 季风区和非季风区', 'D. 内流区和外流区'], answer: 'A', type: '区位判断' },
+                { q: '岷江是长江的重要支流，它的流向是？', options: ['A. 自北向南', 'B. 自南向北', 'C. 自西向东', 'D. 自东向西'], answer: 'A', type: '地形识别' },
+                { q: '大熊猫选择竹林作为栖息地的主要原因是？', options: ['A. 食物来源', 'B. 隐蔽性好', 'C. 气候适宜', 'D. 以上都是'], answer: 'D', type: '人地关系' }
+            ],
+            
+            // 骆驼 - 沙漠场景
+            camel: [
+                { q: '塔克拉玛干沙漠的沙丘类型主要是？', options: ['A. 新月形沙丘', 'B. 沙垄', 'C. 沙山', 'D. 以上都有'], answer: 'D', type: '地形识别' },
+                { q: '沙漠绿洲形成的关键因素是？', options: ['A. 降水', 'B. 地下水', 'C. 河流', 'D. 以上都是'], answer: 'D', type: '气候分析' },
+                { q: '戈壁滩与沙漠的主要区别是？', options: ['A. 有砾石覆盖', 'B. 降水更少', 'C. 温度更高', 'D. 风力更大'], answer: 'A', type: '地形识别' },
+                { q: '古丝绸之路选择沙漠边缘通过的原因是？', options: ['A. 有绿洲补给', 'B. 地势平坦', 'C. 避开沙漠', 'D. 以上都是'], answer: 'D', type: '人地关系' },
+                { q: '沙漠化防治的有效措施是？', options: ['A. 植树造林', 'B. 合理放牧', 'C. 节约用水', 'D. 以上都是'], answer: 'D', type: '综合应用' }
+            ],
+            
+            // 袋鼠 - 澳大利亚场景
+            kangaroo: [
+                { q: '大分水岭东侧降水多的原因是？', options: ['A. 地形雨', 'B. 对流雨', 'C. 锋面雨', 'D. 台风雨'], answer: 'A', type: '气候分析' },
+                { q: '墨累-达令盆地是澳大利亚重要的？', options: ['A. 工业区', 'B. 农业区', 'C. 牧业区', 'D. 矿业区'], answer: 'B', type: '区位判断' },
+                { q: '大堡礁是世界最大的珊瑚礁群，形成条件是？', options: ['A. 水温高', 'B. 水质清', 'C. 阳光足', 'D. 以上都是'], answer: 'D', type: '地形识别' },
+                { q: '澳大利亚内陆沙漠气候干旱的原因是？', options: ['A. 副热带高压', 'B. 距海远', 'C. 地形阻挡', 'D. 以上都是'], answer: 'D', type: '气候分析' },
+                { q: '悉尼港成为重要港口的优势是？', options: ['A. 天然深水港', 'B. 经济腹地广', 'C. 交通便利', 'D. 以上都是'], answer: 'D', type: '人地关系' }
+            ],
+            
+            // 北极熊 - 北极场景
+            polar_bear: [
+                { q: '北冰洋海冰面积减少的主要原因是？', options: ['A. 全球变暖', 'B. 洋流变化', 'C. 人类活动', 'D. 火山喷发'], answer: 'A', type: '气候分析' },
+                { q: '格陵兰岛的冰川作用形成了什么地貌？', options: ['A. U型谷', 'B. V型谷', 'C. 峡湾', 'D. A和C'], answer: 'D', type: '地形识别' },
+                { q: '苔原带的植被特点是？', options: ['A. 低矮', 'B. 生长期短', 'C. 耐寒', 'D. 以上都是'], answer: 'D', type: '区位判断' },
+                { q: '北极圈内会出现极昼极夜现象，原因是？', options: ['A. 地球自转', 'B. 地球公转', 'C. 黄赤交角', 'D. B和C'], answer: 'D', type: '综合应用' },
+                { q: '因纽特人适应极地环境的方式是？', options: ['A. 捕猎为生', 'B. 建造冰屋', 'C. 穿兽皮衣', 'D. 以上都是'], answer: 'D', type: '人地关系' }
+            ]
+        };
         
         this.currentQuestion = null;
         
@@ -336,9 +399,12 @@ class AnimalGame {
     }
     
     showQuestion(obstacle) {
-        const questionIndex = obstacle.questionIndex % this.questions.length;
+        // 根据当前动物获取题库
+        const animalQuestions = this.questionBank[this.currentAnimal] || this.questionBank.penguin;
+        const questionIndex = obstacle.questionIndex % animalQuestions.length;
+        
         this.currentQuestion = {
-            data: this.questions[questionIndex],
+            data: animalQuestions[questionIndex],
             obstacle: obstacle
         };
         
@@ -659,12 +725,23 @@ class AnimalGame {
     }
     
     updateUI() {
-        const healthDisplay = document.getElementById('health-display');
+        // 更新生命值显示
+        const hearts = document.querySelectorAll('.heart');
+        hearts.forEach((heart, index) => {
+            if (index < this.health) {
+                heart.style.opacity = '1';
+                heart.style.filter = 'grayscale(0)';
+            } else {
+                heart.style.opacity = '0.3';
+                heart.style.filter = 'grayscale(1)';
+            }
+        });
+        
+        // 更新地图信息
         const mapName = document.getElementById('map-name');
         const mapProgress = document.getElementById('map-progress');
         const animalName = document.getElementById('animal-name');
         
-        if (healthDisplay) healthDisplay.textContent = '❤️'.repeat(this.health);
         if (mapName) mapName.textContent = this.maps[this.currentMap]?.name || '';
         if (mapProgress) mapProgress.textContent = `${this.currentMap + 1}/5`;
         if (animalName && this.currentAnimal) {
