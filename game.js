@@ -785,20 +785,25 @@ class GameState {
         // 动物卡片选择
         animalCards.forEach(card => {
             card.addEventListener('click', () => {
+                console.log('动物卡片被点击:', card.dataset.animal);
                 // 移除其他卡片的选中状态
                 animalCards.forEach(c => c.classList.remove('selected'));
                 // 添加当前卡片的选中状态
                 card.classList.add('selected');
                 // 保存选择的动物
                 this.selectedAnimal = card.dataset.animal;
+                console.log('已选择动物:', this.selectedAnimal);
                 // 启用确认按钮
                 confirmAnimalBtn.disabled = false;
+                console.log('确认按钮已启用');
             });
         });
         
         // 确认选择动物并开始游戏
         confirmAnimalBtn.addEventListener('click', () => {
+            console.log('确认按钮被点击');
             if (this.selectedAnimal) {
+                console.log('开始游戏，动物:', this.selectedAnimal);
                 this.currentAnimal = this.selectedAnimal;
                 this.player.animal = this.currentAnimal;
                 
@@ -833,6 +838,7 @@ class GameState {
         
         // 从动物选择返回大厅
         backToLobbyBtn.addEventListener('click', () => {
+            console.log('返回按钮被点击');
             animalSelectionScreen.classList.add('hidden');
             gameLobby.classList.remove('hidden');
             // 重置选择
