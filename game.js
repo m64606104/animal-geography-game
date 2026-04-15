@@ -749,33 +749,9 @@ class GameState {
             animalSelectionScreen.classList.remove('hidden');
         });
         
-        // 游戏大厅 - 专题学习按钮
-        const specialTopicsBtn = document.getElementById('special-topics-btn');
-        if (specialTopicsBtn) {
-            specialTopicsBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                console.log('专题学习按钮被点击');
-                window.location.href = 'ocean-select.html';
-            });
-        } else {
-            console.error('找不到专题学习按钮');
-        }
-        
-        // 游戏大厅 - 游戏说明按钮
-        const gameRulesBtn = document.getElementById('game-rules-btn');
-        gameRulesBtn.addEventListener('click', () => {
-            gameLobby.classList.add('hidden');
-            gameRulesScreen.classList.remove('hidden');
-        });
-        
-        // 游戏说明 - 返回大厅按钮
-        const backFromRulesBtn = document.getElementById('back-from-rules-btn');
-        if (backFromRulesBtn) {
-            backFromRulesBtn.addEventListener('click', () => {
-                gameRulesScreen.classList.add('hidden');
-                gameLobby.classList.remove('hidden');
-            });
-        }
+        // 注意：新设计中专题学习和游戏说明按钮已移除
+        // 专题学习通过主页的链接直接跳转到 ocean-explore.html
+        // 游戏说明界面保留但不在主页显示入口
         
         // 动物选择界面
         const animalCards = document.querySelectorAll('.animal-card');
