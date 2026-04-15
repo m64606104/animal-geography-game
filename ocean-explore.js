@@ -78,10 +78,10 @@ class OceanExploreSystem {
     }
     
     setupEventListeners() {
-        // 返回按钮
+        // 返回按钮 - 返回主页
         document.getElementById('back-btn').addEventListener('click', () => {
-            if (confirm('确定要返回吗？')) {
-                window.location.href = 'ocean-select.html';
+            if (confirm('确定要返回主页吗？当前进度将不会保存。')) {
+                window.location.href = 'index.html';
             }
         });
         

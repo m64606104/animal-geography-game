@@ -673,19 +673,20 @@ class GameState {
         // 获取对应栖息地的题库
         const bank = this.habitatQuestionBank[habitat] || this.habitatQuestionBank.antarctica;
         
-        // 为每张地图随机抽取题目
+        // 为每张地图随机抽取题目（允许重复以确保有足够题目）
         this.maps.forEach((map, mapIndex) => {
             const shuffled = this.shuffleArray([...bank]);
-            const selected = shuffled.slice(mapIndex * 5, (mapIndex + 1) * 5);
             
-            selected.forEach(question => {
+            // 每张地图需要5题，如果题库不够就循环使用
+            for (let i = 0; i < 5; i++) {
+                const question = shuffled[i % shuffled.length];
                 this.questions.push({
                     id: questionId++,
                     question: question.question,
                     options: question.options,
                     correct: question.correct
                 });
-            });
+            }
         });
     }
     
