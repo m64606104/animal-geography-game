@@ -350,9 +350,17 @@ class AnimalGame {
     }
     
     updateUI() {
-        document.getElementById('health-value').textContent = '❤️'.repeat(this.health);
-        document.getElementById('map-name').textContent = this.maps[this.currentMap]?.name || '';
-        document.getElementById('progress-value').textContent = `${this.score}/5`;
+        const healthDisplay = document.getElementById('health-display');
+        const mapName = document.getElementById('map-name');
+        const mapProgress = document.getElementById('map-progress');
+        const animalName = document.getElementById('animal-name');
+        
+        if (healthDisplay) healthDisplay.textContent = '❤️'.repeat(this.health);
+        if (mapName) mapName.textContent = this.maps[this.currentMap]?.name || '';
+        if (mapProgress) mapProgress.textContent = `${this.currentMap + 1}/5`;
+        if (animalName && this.currentAnimal) {
+            animalName.textContent = this.animals[this.currentAnimal].name;
+        }
     }
     
     showGameUI() {
