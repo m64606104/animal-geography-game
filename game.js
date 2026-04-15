@@ -164,26 +164,64 @@ class AnimalGame {
     
     generateMaps() {
         this.maps = [];
-        const mapConfigs = [
-            { name: '南极冰原', bgColor: '#E0F2F7' },
-            { name: '沙漠绿洲', bgColor: '#F4E4C1' },
-            { name: '竹林秘境', bgColor: '#2D5016' },
-            { name: '澳洲内陆', bgColor: '#CD853F' },
-            { name: '北极冰川', bgColor: '#F0F8FF' }
-        ];
+        
+        // 根据选择的动物生成对应的5张地图
+        const animalMapConfigs = {
+            penguin: [
+                { name: '南极冰盖', bgColor: '#E8F4F8', theme: 'ice', desc: '冰川地貌' },
+                { name: '南极半岛', bgColor: '#D4E8F0', theme: 'ice', desc: '极地气候' },
+                { name: '罗斯海', bgColor: '#B8D4E8', theme: 'ice', desc: '洋流与海冰' },
+                { name: '南极高原', bgColor: '#F0F8FC', theme: 'ice', desc: '海拔与气压' },
+                { name: '科考站区', bgColor: '#DCE8F0', theme: 'ice', desc: '人类活动' }
+            ],
+            panda: [
+                { name: '四川盆地', bgColor: '#E8D4C0', theme: 'bamboo', desc: '盆地地形' },
+                { name: '秦岭山脉', bgColor: '#C8D8C0', theme: 'bamboo', desc: '山地垂直带' },
+                { name: '岷江河谷', bgColor: '#B8D0C8', theme: 'bamboo', desc: '河流地貌' },
+                { name: '竹林生态区', bgColor: '#2D5016', theme: 'bamboo', desc: '植被气候' },
+                { name: '自然保护区', bgColor: '#3D6026', theme: 'bamboo', desc: '人地关系' }
+            ],
+            camel: [
+                { name: '塔克拉玛干沙漠', bgColor: '#F4E4C1', theme: 'cactus', desc: '风沙地貌' },
+                { name: '沙漠绿洲', bgColor: '#E8D8B0', theme: 'cactus', desc: '水源聚落' },
+                { name: '戈壁滩', bgColor: '#D8C8A8', theme: 'cactus', desc: '荒漠化' },
+                { name: '沙漠边缘', bgColor: '#E0D0B0', theme: 'cactus', desc: '气候过渡' },
+                { name: '古丝绸之路', bgColor: '#D4C4A4', theme: 'cactus', desc: '交通贸易' }
+            ],
+            kangaroo: [
+                { name: '大分水岭', bgColor: '#B8C8B0', theme: 'eucalyptus', desc: '地形雨' },
+                { name: '墨累-达令盆地', bgColor: '#D8C8A8', theme: 'eucalyptus', desc: '农业区位' },
+                { name: '大堡礁', bgColor: '#88C8D8', theme: 'eucalyptus', desc: '珊瑚礁' },
+                { name: '内陆沙漠', bgColor: '#E8D0A8', theme: 'eucalyptus', desc: '大陆性气候' },
+                { name: '悉尼港', bgColor: '#A8C8D8', theme: 'eucalyptus', desc: '海港城市' }
+            ],
+            polar_bear: [
+                { name: '北冰洋海冰', bgColor: '#E0F0F8', theme: 'arctic', desc: '海冰消融' },
+                { name: '格陵兰岛', bgColor: '#D8E8F0', theme: 'arctic', desc: '冰川作用' },
+                { name: '苔原带', bgColor: '#C8D0C0', theme: 'arctic', desc: '冻土植被' },
+                { name: '北极圈', bgColor: '#D0E0E8', theme: 'arctic', desc: '极昼极夜' },
+                { name: '因纽特村落', bgColor: '#C8D8D0', theme: 'arctic', desc: '极地适应' }
+            ]
+        };
+        
+        const configs = animalMapConfigs[this.currentAnimal] || animalMapConfigs.penguin;
         
         for (let i = 0; i < 5; i++) {
+            const config = configs[i];
             const map = {
-                name: mapConfigs[i].name,
-                bgColor: mapConfigs[i].bgColor,
+                name: config.name,
+                bgColor: config.bgColor,
+                theme: config.theme,
+                description: config.desc,
                 obstacles: []
             };
             
-            // 生成5个障碍物
+            // 生成5个障碍物，位置随机但不重叠
+            const positions = this.generateObstaclePositions(5);
             for (let j = 0; j < 5; j++) {
                 map.obstacles.push({
-                    x: 200 + j * 200,
-                    y: 200 + Math.random() * 200,
+                    x: positions[j].x,
+                    y: positions[j].y,
                     width: 50,
                     height: 50,
                     completed: false,
@@ -193,6 +231,36 @@ class AnimalGame {
             
             this.maps.push(map);
         }
+    }
+    
+    generateObstaclePositions(count) {
+        const positions = [];
+        const minDistance = 150; // 最小间距
+        
+        for (let i = 0; i < count; i++) {
+            let attempts = 0;
+            let pos;
+            
+            do {
+                pos = {
+                    x: 200 + i * 200 + (Math.random() - 0.5) * 50,
+                    y: 150 + Math.random() * 250
+                };
+                attempts++;
+            } while (attempts < 10 && this.isTooClose(pos, positions, minDistance));
+            
+            positions.push(pos);
+        }
+        
+        return positions;
+    }
+    
+    isTooClose(pos, positions, minDistance) {
+        return positions.some(p => {
+            const dx = pos.x - p.x;
+            const dy = pos.y - p.y;
+            return Math.sqrt(dx * dx + dy * dy) < minDistance;
+        });
     }
     
     gameLoop() {
@@ -373,24 +441,28 @@ class AnimalGame {
             this.ctx.lineTo(x + w * 0.8, y + h * 0.3);
             this.ctx.stroke();
         } else {
-            // 未完成 - 根据地图类型绘制不同风格
-            const mapIndex = this.currentMap;
+            // 未完成 - 根据地图主题绘制不同风格
+            const map = this.maps[this.currentMap];
+            const theme = map?.theme || 'ice';
             
-            if (mapIndex === 0) {
-                // 南极冰川
-                this.drawIceBlock(x, y, w, h);
-            } else if (mapIndex === 1) {
-                // 沙漠仙人掌
-                this.drawCactus(x, y, w, h);
-            } else if (mapIndex === 2) {
-                // 竹林
-                this.drawBamboo(x, y, w, h);
-            } else if (mapIndex === 3) {
-                // 澳洲桉树
-                this.drawEucalyptus(x, y, w, h);
-            } else {
-                // 北极冰块
-                this.drawArcticIce(x, y, w, h);
+            switch(theme) {
+                case 'ice':
+                    this.drawIceBlock(x, y, w, h);
+                    break;
+                case 'cactus':
+                    this.drawCactus(x, y, w, h);
+                    break;
+                case 'bamboo':
+                    this.drawBamboo(x, y, w, h);
+                    break;
+                case 'eucalyptus':
+                    this.drawEucalyptus(x, y, w, h);
+                    break;
+                case 'arctic':
+                    this.drawArcticIce(x, y, w, h);
+                    break;
+                default:
+                    this.drawIceBlock(x, y, w, h);
             }
             
             // 添加问号标记
