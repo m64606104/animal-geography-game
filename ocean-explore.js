@@ -153,6 +153,9 @@ class OceanExploreSystem {
         document.getElementById('chapter-select').classList.add('hidden');
         document.getElementById('task-screen').classList.remove('hidden');
         
+        // 清空之前的观察记录
+        document.getElementById('observation-log').innerHTML = '';
+        
         // 初始化粒子（如果还没有）
         if (this.particles.length === 0) {
             this.initParticles();
@@ -160,12 +163,17 @@ class OceanExploreSystem {
         
         // 重置实验状态
         this.experimentState = {
-            windDirection: 0,
-            windStrength: 0,
-            temperature: 20,
+            windDirection: 90,
+            windStrength: 50,
+            temperature: 15,
             salinity: 35,
-            waterRemoved: false
+            waterRemoved: false,
+            season: 'summer',
+            selectedRegion: null
         };
+        
+        // 重置测量状态
+        this.measurements = { warm: false, cold: false, normal: false };
         
         // 开始动画
         this.startAnimation();
@@ -262,6 +270,7 @@ class OceanExploreSystem {
                     this.drawThermometer();
                 }
                 break;
+            // 第2章实验
             case 'wind':
                 this.drawChapter2Wind();
                 break;
@@ -273,6 +282,39 @@ class OceanExploreSystem {
                 break;
             case 'compensation':
                 this.drawChapter2Compensation();
+                break;
+            // 第3章地图探险
+            case 'map_north':
+                this.drawChapter3North();
+                break;
+            case 'map_south':
+                this.drawChapter3South();
+                break;
+            case 'map_equator':
+                this.drawChapter3Equator();
+                break;
+            case 'monsoon':
+                this.drawChapter3Monsoon();
+                break;
+            // 第4章案例分析
+            case 'fishery':
+                this.drawChapter4Fishery();
+                break;
+            case 'shipping':
+                this.drawChapter4Shipping();
+                break;
+            case 'climate_case':
+                this.drawChapter4Climate();
+                break;
+            case 'fog':
+                this.drawChapter4Fog();
+                break;
+            // 第5章综合探究
+            case 'elnino':
+                this.drawChapter5ElNino();
+                break;
+            case 'thermohaline':
+                this.drawChapter5Thermohaline();
                 break;
             case 'observe':
                 // 第1章的观察任务
@@ -1640,6 +1682,56 @@ class OceanExploreSystem {
                     document.getElementById('thinking-area').style.display = 'block';
                 }, 500);
                 break;
+            
+            case 'monsoon':
+                panel.innerHTML = `
+                    <h4>🌀 季风洋流</h4>
+                    <p style="font-size: 13px; color: #64748b; margin-bottom: 15px; line-height: 1.6;">
+                        ${task.instruction}
+                    </p>
+                    <div style="text-align: center; margin-bottom: 15px;">
+                        <button onclick="game.setSeason('summer')" 
+                            style="padding: 12px 24px; background: #f59e0b; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px;">
+                            ☀️ 夏季
+                        </button>
+                        <button onclick="game.setSeason('winter')" 
+                            style="padding: 12px 24px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; margin-left: 10px;">
+                            ❄️ 冬季
+                        </button>
+                    </div>
+                    <div style="background: #fef3c7; padding: 12px; border-radius: 8px; font-size: 12px; color: #92400e;">
+                        ${task.hint}
+                    </div>
+                `;
+                setTimeout(() => {
+                    document.getElementById('thinking-area').style.display = 'block';
+                }, 500);
+                break;
+            
+            case 'elnino':
+                panel.innerHTML = `
+                    <h4>🌡️ 厄尔尼诺现象</h4>
+                    <p style="font-size: 13px; color: #64748b; margin-bottom: 15px; line-height: 1.6;">
+                        ${task.instruction}
+                    </p>
+                    <div style="text-align: center; margin-bottom: 15px;">
+                        <button onclick="game.setSeason('normal')" 
+                            style="padding: 12px 24px; background: #22c55e; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px;">
+                            ✓ 正常年份
+                        </button>
+                        <button onclick="game.setSeason('elnino')" 
+                            style="padding: 12px 24px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; margin-left: 10px;">
+                            ⚠️ 厄尔尼诺
+                        </button>
+                    </div>
+                    <div style="background: #fef3c7; padding: 12px; border-radius: 8px; font-size: 12px; color: #92400e;">
+                        ${task.hint}
+                    </div>
+                `;
+                setTimeout(() => {
+                    document.getElementById('thinking-area').style.display = 'block';
+                }, 500);
+                break;
                 
             default:
                 // 观察或思考题
@@ -1693,6 +1785,10 @@ class OceanExploreSystem {
         this.experimentState.waterRemoved = false;
         document.getElementById('remove-water-btn').disabled = false;
         document.getElementById('remove-water-btn').textContent = '💨 抽走海水';
+    }
+    
+    setSeason(season) {
+        this.experimentState.season = season;
     }
     
     // ========== 第2章实验可视化 ==========
@@ -1841,74 +1937,837 @@ class OceanExploreSystem {
     }
     
     drawChapter2Compensation() {
-        // 补偿流实验
-        this.ctx.fillStyle = '#0ea5e9';
+        // 补偿流实验 - 优化版
+        const gradient = this.ctx.createLinearGradient(0, 0, 0, 500);
+        gradient.addColorStop(0, '#7dd3fc');
+        gradient.addColorStop(1, '#0369a1');
+        this.ctx.fillStyle = gradient;
         this.ctx.fillRect(0, 0, 900, 500);
         
-        // 海水
-        this.ctx.fillStyle = '#0284c7';
-        this.ctx.fillRect(0, 200, 900, 300);
+        // 海岸线
+        this.ctx.fillStyle = '#a3e635';
+        this.ctx.beginPath();
+        this.ctx.moveTo(0, 150);
+        this.ctx.lineTo(200, 180);
+        this.ctx.lineTo(200, 500);
+        this.ctx.lineTo(0, 500);
+        this.ctx.closePath();
+        this.ctx.fill();
+        
+        // 海水层次
+        this.ctx.fillStyle = 'rgba(2, 132, 199, 0.3)';
+        this.ctx.fillRect(200, 180, 700, 320);
+        
+        // 深层海水
+        this.ctx.fillStyle = 'rgba(30, 58, 138, 0.5)';
+        this.ctx.fillRect(200, 350, 700, 150);
         
         if (this.experimentState.waterRemoved) {
-            // 抽走的区域
-            this.ctx.fillStyle = '#0ea5e9';
-            this.ctx.fillRect(350, 200, 200, 150);
+            // 表层海水被吹走的区域
+            this.ctx.fillStyle = 'rgba(125, 211, 252, 0.8)';
+            this.ctx.fillRect(350, 180, 200, 80);
             
-            // 补偿流箭头
+            // 动态补偿流粒子
+            const t = this.animationFrame * 0.05;
+            
+            // 水平补偿流（从两侧流入）
+            for (let i = 0; i < 15; i++) {
+                const progress = (t + i * 0.2) % 1;
+                // 左侧流入
+                const x1 = 220 + progress * 130;
+                const y1 = 220 + Math.sin(progress * Math.PI) * 10;
+                this.ctx.fillStyle = '#fbbf24';
+                this.ctx.beginPath();
+                this.ctx.arc(x1, y1, 6, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // 右侧流入
+                const x2 = 680 - progress * 130;
+                this.ctx.beginPath();
+                this.ctx.arc(x2, y1, 6, 0, Math.PI * 2);
+                this.ctx.fill();
+            }
+            
+            // 上升流粒子
+            for (let i = 0; i < 10; i++) {
+                const progress = (t * 0.8 + i * 0.15) % 1;
+                const x = 400 + (i % 3) * 50;
+                const y = 480 - progress * 200;
+                this.ctx.fillStyle = '#22d3ee';
+                this.ctx.beginPath();
+                this.ctx.arc(x, y, 5, 0, Math.PI * 2);
+                this.ctx.fill();
+            }
+            
+            // 箭头标注
             this.ctx.strokeStyle = '#fbbf24';
-            this.ctx.lineWidth = 4;
+            this.ctx.lineWidth = 3;
+            this.drawArrow(250, 230, 340, 230);
+            this.drawArrow(650, 230, 560, 230);
+            this.drawArrow(450, 450, 450, 300);
             
-            // 左边补偿
-            this.ctx.beginPath();
-            this.ctx.moveTo(250, 280);
-            this.ctx.lineTo(340, 280);
-            this.ctx.stroke();
-            this.ctx.fillStyle = '#fbbf24';
-            this.ctx.beginPath();
-            this.ctx.moveTo(340, 280);
-            this.ctx.lineTo(320, 265);
-            this.ctx.lineTo(320, 295);
-            this.ctx.closePath();
-            this.ctx.fill();
-            
-            // 右边补偿
-            this.ctx.beginPath();
-            this.ctx.moveTo(650, 280);
-            this.ctx.lineTo(560, 280);
-            this.ctx.stroke();
-            this.ctx.beginPath();
-            this.ctx.moveTo(560, 280);
-            this.ctx.lineTo(580, 265);
-            this.ctx.lineTo(580, 295);
-            this.ctx.closePath();
-            this.ctx.fill();
-            
-            // 底部上升流
-            this.ctx.beginPath();
-            this.ctx.moveTo(450, 450);
-            this.ctx.lineTo(450, 360);
-            this.ctx.stroke();
-            this.ctx.beginPath();
-            this.ctx.moveTo(450, 360);
-            this.ctx.lineTo(435, 380);
-            this.ctx.lineTo(465, 380);
-            this.ctx.closePath();
-            this.ctx.fill();
-            
+            // 标签
             this.ctx.fillStyle = 'white';
             this.ctx.font = 'bold 14px Arial';
             this.ctx.textAlign = 'center';
-            this.ctx.fillText('海水被抽走', 450, 280);
-            this.ctx.fillText('周围海水补充', 450, 420);
+            this.ctx.fillText('表层海水被风吹走', 450, 200);
+            this.ctx.fillText('水平补偿流', 300, 260);
+            this.ctx.fillText('水平补偿流', 600, 260);
+            this.ctx.fillText('上升流', 520, 380);
+        } else {
+            // 正常状态 - 显示风
+            this.ctx.fillStyle = 'white';
+            this.ctx.font = 'bold 16px Arial';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText('点击"抽走海水"按钮，模拟风将表层海水吹走', 550, 250);
+            
+            // 风的示意
+            for (let i = 0; i < 5; i++) {
+                const x = 300 + i * 100;
+                this.ctx.fillStyle = 'rgba(251, 191, 36, 0.6)';
+                this.ctx.beginPath();
+                this.ctx.moveTo(x, 120);
+                this.ctx.lineTo(x + 40, 130);
+                this.ctx.lineTo(x, 140);
+                this.ctx.closePath();
+                this.ctx.fill();
+            }
+            this.ctx.fillText('💨 离岸风', 550, 100);
         }
         
-        // 说明
+        // 图例
         this.ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        this.ctx.fillRect(50, 30, 800, 50);
+        this.ctx.fillRect(650, 420, 230, 70);
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = '12px Arial';
+        this.ctx.textAlign = 'left';
+        this.ctx.fillText('🟡 水平补偿流', 660, 445);
+        this.ctx.fillText('🔵 上升流（带来营养物质）', 660, 465);
+        this.ctx.fillText('🟢 陆地', 660, 485);
+    }
+    
+    // 绘制箭头辅助方法
+    drawArrow(fromX, fromY, toX, toY) {
+        const headLen = 15;
+        const angle = Math.atan2(toY - fromY, toX - fromX);
+        
+        this.ctx.beginPath();
+        this.ctx.moveTo(fromX, fromY);
+        this.ctx.lineTo(toX, toY);
+        this.ctx.stroke();
+        
+        this.ctx.beginPath();
+        this.ctx.moveTo(toX, toY);
+        this.ctx.lineTo(toX - headLen * Math.cos(angle - Math.PI / 6), toY - headLen * Math.sin(angle - Math.PI / 6));
+        this.ctx.lineTo(toX - headLen * Math.cos(angle + Math.PI / 6), toY - headLen * Math.sin(angle + Math.PI / 6));
+        this.ctx.closePath();
+        this.ctx.fillStyle = this.ctx.strokeStyle;
+        this.ctx.fill();
+    }
+    
+    // ========== 第3章：地图探险可视化 ==========
+    drawChapter3North() {
+        // 北半球洋流 - 顺时针环流
+        this.drawWorldMapBase();
+        
+        // 高亮北半球
+        this.ctx.fillStyle = 'rgba(59, 130, 246, 0.1)';
+        this.ctx.fillRect(0, 0, 900, 250);
+        
+        // 北太平洋环流（顺时针）
+        this.ctx.strokeStyle = '#ef4444';
+        this.ctx.lineWidth = 4;
+        this.drawCurvedArrow(600, 180, 750, 120, 800, 200, true); // 北太平洋暖流
+        this.ctx.strokeStyle = '#3b82f6';
+        this.drawCurvedArrow(800, 200, 780, 280, 700, 300, true); // 加利福尼亚寒流
+        this.ctx.strokeStyle = '#ef4444';
+        this.drawCurvedArrow(700, 300, 550, 320, 500, 280, true); // 北赤道暖流
+        this.ctx.strokeStyle = '#ef4444';
+        this.drawCurvedArrow(500, 280, 520, 200, 600, 180, true); // 黑潮
+        
+        // 北大西洋环流
+        this.ctx.strokeStyle = '#ef4444';
+        this.drawCurvedArrow(200, 180, 300, 120, 380, 180, true);
+        this.ctx.strokeStyle = '#3b82f6';
+        this.drawCurvedArrow(380, 180, 350, 250, 300, 300, true);
+        this.ctx.strokeStyle = '#ef4444';
+        this.drawCurvedArrow(300, 300, 200, 320, 150, 280, true);
+        this.ctx.strokeStyle = '#ef4444';
+        this.drawCurvedArrow(150, 280, 160, 200, 200, 180, true);
+        
+        // 标注
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = 'bold 16px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('北半球中低纬度环流', 450, 30);
+        this.ctx.font = '14px Arial';
+        this.ctx.fillText('观察：环流方向是顺时针还是逆时针？', 450, 480);
+        
+        // 旋转方向指示
+        this.ctx.fillStyle = '#fbbf24';
+        this.ctx.font = 'bold 24px Arial';
+        this.ctx.fillText('↻', 650, 220);
+        this.ctx.fillText('↻', 250, 220);
+    }
+    
+    drawChapter3South() {
+        // 南半球洋流 - 逆时针环流
+        this.drawWorldMapBase();
+        
+        // 高亮南半球
+        this.ctx.fillStyle = 'rgba(236, 72, 153, 0.1)';
+        this.ctx.fillRect(0, 250, 900, 250);
+        
+        // 南太平洋环流（逆时针）
+        this.ctx.strokeStyle = '#3b82f6';
+        this.ctx.lineWidth = 4;
+        this.drawCurvedArrow(700, 350, 780, 400, 750, 450, true); // 秘鲁寒流
+        this.ctx.strokeStyle = '#ef4444';
+        this.drawCurvedArrow(750, 450, 650, 470, 550, 450, true); // 南赤道暖流
+        this.ctx.strokeStyle = '#ef4444';
+        this.drawCurvedArrow(550, 450, 500, 400, 550, 350, true); // 东澳大利亚暖流
+        this.ctx.strokeStyle = '#3b82f6';
+        this.drawCurvedArrow(550, 350, 620, 340, 700, 350, true); // 西风漂流
+        
+        // 南大西洋环流
+        this.ctx.strokeStyle = '#3b82f6';
+        this.drawCurvedArrow(300, 350, 280, 400, 250, 450, true);
+        this.ctx.strokeStyle = '#ef4444';
+        this.drawCurvedArrow(250, 450, 180, 470, 120, 450, true);
+        this.ctx.strokeStyle = '#ef4444';
+        this.drawCurvedArrow(120, 450, 100, 400, 150, 350, true);
+        this.ctx.strokeStyle = '#3b82f6';
+        this.drawCurvedArrow(150, 350, 220, 340, 300, 350, true);
+        
+        // 标注
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = 'bold 16px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('南半球中低纬度环流', 450, 30);
+        this.ctx.font = '14px Arial';
+        this.ctx.fillText('观察：与北半球相比，旋转方向有什么不同？', 450, 480);
+        
+        // 旋转方向指示
+        this.ctx.fillStyle = '#fbbf24';
+        this.ctx.font = 'bold 24px Arial';
+        this.ctx.fillText('↺', 650, 400);
+        this.ctx.fillText('↺', 200, 400);
+    }
+    
+    drawChapter3Equator() {
+        // 赤道洋流
+        this.drawWorldMapBase();
+        
+        // 高亮赤道区域
+        this.ctx.fillStyle = 'rgba(251, 191, 36, 0.2)';
+        this.ctx.fillRect(0, 220, 900, 60);
+        
+        // 赤道线
+        this.ctx.strokeStyle = '#fbbf24';
+        this.ctx.lineWidth = 2;
+        this.ctx.setLineDash([10, 5]);
+        this.ctx.beginPath();
+        this.ctx.moveTo(0, 250);
+        this.ctx.lineTo(900, 250);
+        this.ctx.stroke();
+        this.ctx.setLineDash([]);
+        
+        // 信风箭头
+        this.ctx.fillStyle = 'rgba(251, 191, 36, 0.8)';
+        for (let i = 0; i < 8; i++) {
+            const x = 100 + i * 100;
+            // 北半球东北信风
+            this.ctx.beginPath();
+            this.ctx.moveTo(x + 30, 200);
+            this.ctx.lineTo(x, 220);
+            this.ctx.lineTo(x + 10, 220);
+            this.ctx.closePath();
+            this.ctx.fill();
+            // 南半球东南信风
+            this.ctx.beginPath();
+            this.ctx.moveTo(x + 30, 300);
+            this.ctx.lineTo(x, 280);
+            this.ctx.lineTo(x + 10, 280);
+            this.ctx.closePath();
+            this.ctx.fill();
+        }
+        
+        // 赤道洋流（自东向西）
+        this.ctx.strokeStyle = '#ef4444';
+        this.ctx.lineWidth = 5;
+        for (let i = 0; i < 3; i++) {
+            const y = 235 + i * 15;
+            this.ctx.beginPath();
+            this.ctx.moveTo(850, y);
+            this.ctx.lineTo(100, y);
+            this.ctx.stroke();
+            // 箭头
+            this.ctx.fillStyle = '#ef4444';
+            this.ctx.beginPath();
+            this.ctx.moveTo(100, y);
+            this.ctx.lineTo(120, y - 8);
+            this.ctx.lineTo(120, y + 8);
+            this.ctx.closePath();
+            this.ctx.fill();
+        }
+        
+        // 标注
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = 'bold 16px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('赤道洋流', 450, 30);
+        this.ctx.font = '14px Arial';
+        this.ctx.fillText('🌬️ 信风', 800, 180);
+        this.ctx.fillText('赤道暖流（自东向西）', 450, 320);
+        this.ctx.fillText('思考：为什么赤道洋流向西流动？与信风有什么关系？', 450, 480);
+    }
+    
+    drawChapter3Monsoon() {
+        // 季风洋流 - 北印度洋
+        this.drawWorldMapBase();
+        
+        // 高亮印度洋区域
+        this.ctx.fillStyle = 'rgba(34, 197, 94, 0.2)';
+        this.ctx.fillRect(350, 200, 200, 150);
+        
+        const isSummer = this.experimentState.season === 'summer';
+        
+        // 季风方向
+        this.ctx.fillStyle = '#fbbf24';
+        this.ctx.font = 'bold 14px Arial';
+        if (isSummer) {
+            // 夏季西南季风
+            this.ctx.fillText('☀️ 夏季 - 西南季风', 450, 180);
+            this.ctx.strokeStyle = '#ef4444';
+            this.ctx.lineWidth = 4;
+            // 顺时针环流
+            this.drawCurvedArrow(380, 280, 420, 240, 480, 250, true);
+            this.drawCurvedArrow(480, 250, 520, 280, 500, 320, true);
+            this.drawCurvedArrow(500, 320, 450, 340, 400, 320, true);
+            this.drawCurvedArrow(400, 320, 370, 300, 380, 280, true);
+            this.ctx.fillStyle = '#fbbf24';
+            this.ctx.font = 'bold 20px Arial';
+            this.ctx.fillText('↻', 450, 290);
+        } else {
+            // 冬季东北季风
+            this.ctx.fillText('❄️ 冬季 - 东北季风', 450, 180);
+            this.ctx.strokeStyle = '#3b82f6';
+            this.ctx.lineWidth = 4;
+            // 逆时针环流
+            this.drawCurvedArrow(480, 280, 440, 240, 380, 250, true);
+            this.drawCurvedArrow(380, 250, 360, 280, 380, 320, true);
+            this.drawCurvedArrow(380, 320, 430, 340, 480, 320, true);
+            this.drawCurvedArrow(480, 320, 510, 300, 480, 280, true);
+            this.ctx.fillStyle = '#fbbf24';
+            this.ctx.font = 'bold 20px Arial';
+            this.ctx.fillText('↺', 450, 290);
+        }
+        
+        // 标注
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = 'bold 16px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('北印度洋季风洋流', 450, 30);
+        this.ctx.font = '14px Arial';
+        this.ctx.fillText('点击切换季节，观察洋流方向的变化', 450, 480);
+    }
+    
+    // ========== 第4章：案例分析可视化 ==========
+    drawChapter4Fishery() {
+        // 渔场选址
+        this.drawWorldMapBase();
+        
+        // 三个候选区域
+        const regions = [
+            { x: 650, y: 200, name: '区域A', desc: '北海道附近' },
+            { x: 300, y: 350, name: '区域B', desc: '大西洋中部' },
+            { x: 750, y: 380, name: '区域C', desc: '秘鲁沿岸' }
+        ];
+        
+        regions.forEach((r, i) => {
+            // 区域圆圈
+            this.ctx.strokeStyle = this.experimentState.selectedRegion === i ? '#fbbf24' : 'white';
+            this.ctx.lineWidth = 3;
+            this.ctx.beginPath();
+            this.ctx.arc(r.x, r.y, 40, 0, Math.PI * 2);
+            this.ctx.stroke();
+            
+            // 标签
+            this.ctx.fillStyle = 'white';
+            this.ctx.font = 'bold 14px Arial';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText(r.name, r.x, r.y - 50);
+            this.ctx.font = '12px Arial';
+            this.ctx.fillText(r.desc, r.x, r.y + 55);
+        });
+        
+        // 洋流示意
+        // 区域A：寒暖流交汇
+        this.ctx.strokeStyle = '#ef4444';
+        this.ctx.lineWidth = 3;
+        this.drawArrow(600, 250, 680, 200);
+        this.ctx.strokeStyle = '#3b82f6';
+        this.drawArrow(700, 150, 680, 200);
+        this.ctx.fillStyle = '#22c55e';
+        this.ctx.beginPath();
+        this.ctx.arc(680, 200, 8, 0, Math.PI * 2);
+        this.ctx.fill();
+        
+        // 区域C：上升流
+        this.ctx.strokeStyle = '#22d3ee';
+        this.drawArrow(750, 430, 750, 380);
+        
+        // 标注
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = 'bold 16px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('🐟 渔场选址任务', 450, 30);
+        this.ctx.font = '14px Arial';
+        this.ctx.fillText('哪个区域最适合建立渔场？为什么？', 450, 480);
+        
+        // 图例
+        this.ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        this.ctx.fillRect(20, 400, 180, 80);
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = '12px Arial';
+        this.ctx.textAlign = 'left';
+        this.ctx.fillText('🔴 暖流', 30, 420);
+        this.ctx.fillText('🔵 寒流', 30, 440);
+        this.ctx.fillText('🟢 寒暖流交汇点', 30, 460);
+        this.ctx.fillText('🔷 上升流', 30, 480);
+    }
+    
+    drawChapter4Shipping() {
+        // 航线规划
+        this.drawWorldMapBase();
+        
+        // 上海和旧金山位置
+        const shanghai = { x: 720, y: 220 };
+        const sf = { x: 150, y: 200 };
+        
+        // 标记城市
+        this.ctx.fillStyle = '#ef4444';
+        this.ctx.beginPath();
+        this.ctx.arc(shanghai.x, shanghai.y, 8, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = 'bold 12px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('上海', shanghai.x, shanghai.y - 15);
+        
+        this.ctx.fillStyle = '#3b82f6';
+        this.ctx.beginPath();
+        this.ctx.arc(sf.x, sf.y, 8, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.fillText('旧金山', sf.x, sf.y - 15);
+        
+        // 航线A：北太平洋航线（顺洋流）
+        this.ctx.strokeStyle = '#22c55e';
+        this.ctx.lineWidth = 3;
+        this.ctx.setLineDash([10, 5]);
+        this.ctx.beginPath();
+        this.ctx.moveTo(shanghai.x, shanghai.y);
+        this.ctx.quadraticCurveTo(450, 100, sf.x, sf.y);
+        this.ctx.stroke();
+        this.ctx.setLineDash([]);
+        this.ctx.fillStyle = '#22c55e';
+        this.ctx.fillText('航线A（北线）', 400, 90);
+        
+        // 航线B：中太平洋航线
+        this.ctx.strokeStyle = '#f59e0b';
+        this.ctx.setLineDash([10, 5]);
+        this.ctx.beginPath();
+        this.ctx.moveTo(shanghai.x, shanghai.y);
+        this.ctx.quadraticCurveTo(450, 280, sf.x, sf.y);
+        this.ctx.stroke();
+        this.ctx.setLineDash([]);
+        this.ctx.fillStyle = '#f59e0b';
+        this.ctx.fillText('航线B（南线）', 400, 300);
+        
+        // 洋流方向
+        this.ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+        this.ctx.lineWidth = 2;
+        for (let i = 0; i < 5; i++) {
+            this.drawArrow(700 - i * 100, 130, 650 - i * 100, 130);
+        }
+        this.ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        this.ctx.font = '11px Arial';
+        this.ctx.fillText('北太平洋暖流 →', 450, 150);
+        
+        // 标注
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = 'bold 16px Arial';
+        this.ctx.fillText('🚢 航线规划任务', 450, 30);
+        this.ctx.font = '14px Arial';
+        this.ctx.fillText('从上海到旧金山，哪条航线更省时间和燃料？', 450, 480);
+    }
+    
+    drawChapter4Climate() {
+        // 气候之谜 - 撒哈拉西海岸
+        const gradient = this.ctx.createLinearGradient(0, 0, 900, 0);
+        gradient.addColorStop(0, '#0ea5e9');
+        gradient.addColorStop(0.4, '#0ea5e9');
+        gradient.addColorStop(0.4, '#fcd34d');
+        gradient.addColorStop(1, '#fcd34d');
+        this.ctx.fillStyle = gradient;
+        this.ctx.fillRect(0, 0, 900, 500);
+        
+        // 大西洋
+        this.ctx.fillStyle = '#0284c7';
+        this.ctx.fillRect(0, 0, 360, 500);
+        
+        // 非洲大陆
+        this.ctx.fillStyle = '#d97706';
+        this.ctx.fillRect(360, 0, 540, 500);
+        
+        // 撒哈拉沙漠
+        this.ctx.fillStyle = '#fbbf24';
+        this.ctx.fillRect(400, 100, 400, 200);
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = 'bold 16px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('撒哈拉沙漠', 600, 200);
+        this.ctx.font = '14px Arial';
+        this.ctx.fillText('内陆温度：45°C', 600, 230);
+        
+        // 加那利群岛
+        this.ctx.fillStyle = '#22c55e';
+        this.ctx.beginPath();
+        this.ctx.arc(320, 180, 15, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = '12px Arial';
+        this.ctx.fillText('加那利群岛', 320, 210);
+        this.ctx.fillText('沿岸温度：25°C', 320, 230);
+        
+        // 加那利寒流
+        this.ctx.strokeStyle = '#3b82f6';
+        this.ctx.lineWidth = 5;
+        for (let i = 0; i < 5; i++) {
+            const y = 100 + i * 60;
+            this.ctx.beginPath();
+            this.ctx.moveTo(200, y);
+            this.ctx.lineTo(340, y + 40);
+            this.ctx.stroke();
+        }
+        this.ctx.fillStyle = '#3b82f6';
+        this.ctx.font = 'bold 14px Arial';
+        this.ctx.fillText('加那利寒流', 150, 250);
+        this.ctx.fillText('↓', 150, 280);
+        
+        // 标注
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = 'bold 16px Arial';
+        this.ctx.fillText('🌡️ 气候之谜', 450, 30);
+        this.ctx.font = '14px Arial';
+        this.ctx.fillText('为什么沿海比同纬度内陆凉爽20°C？', 450, 480);
+    }
+    
+    drawChapter4Fog() {
+        // 雾都伦敦
+        const gradient = this.ctx.createLinearGradient(0, 0, 0, 500);
+        gradient.addColorStop(0, '#64748b');
+        gradient.addColorStop(1, '#1e293b');
+        this.ctx.fillStyle = gradient;
+        this.ctx.fillRect(0, 0, 900, 500);
+        
+        // 海洋
+        this.ctx.fillStyle = '#0369a1';
+        this.ctx.fillRect(0, 250, 500, 250);
+        
+        // 英国
+        this.ctx.fillStyle = '#22c55e';
+        this.ctx.beginPath();
+        this.ctx.ellipse(550, 200, 100, 150, 0, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = 'bold 14px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('英国', 550, 180);
+        this.ctx.fillText('🏙️ 伦敦', 550, 210);
+        
+        // 北大西洋暖流
+        this.ctx.strokeStyle = '#ef4444';
+        this.ctx.lineWidth = 6;
+        this.ctx.beginPath();
+        this.ctx.moveTo(50, 400);
+        this.ctx.quadraticCurveTo(250, 350, 450, 280);
+        this.ctx.stroke();
+        this.ctx.fillStyle = '#ef4444';
+        this.ctx.font = 'bold 14px Arial';
+        this.ctx.fillText('北大西洋暖流', 200, 420);
+        this.ctx.font = '12px Arial';
+        this.ctx.fillText('温暖湿润', 200, 440);
+        
+        // 雾气效果
+        for (let i = 0; i < 20; i++) {
+            const x = 400 + Math.random() * 300;
+            const y = 150 + Math.random() * 150;
+            const r = 20 + Math.random() * 40;
+            this.ctx.fillStyle = `rgba(200, 200, 200, ${0.1 + Math.random() * 0.2})`;
+            this.ctx.beginPath();
+            this.ctx.arc(x, y, r, 0, Math.PI * 2);
+            this.ctx.fill();
+        }
+        
+        // 过程说明
+        this.ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        this.ctx.fillRect(50, 50, 300, 100);
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = '13px Arial';
+        this.ctx.textAlign = 'left';
+        this.ctx.fillText('暖流 → 海水蒸发 → 暖湿空气', 70, 80);
+        this.ctx.fillText('暖湿空气 + 冷空气 → 雾', 70, 105);
+        this.ctx.fillText('伦敦曾被称为"雾都"', 70, 130);
+        
+        // 标注
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = 'bold 16px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('🌫️ 雾都伦敦', 450, 480);
+    }
+    
+    // ========== 第5章：综合探究可视化 ==========
+    drawChapter5ElNino() {
+        // 厄尔尼诺现象
+        const gradient = this.ctx.createLinearGradient(0, 0, 900, 0);
+        gradient.addColorStop(0, '#0ea5e9');
+        gradient.addColorStop(1, '#0ea5e9');
+        this.ctx.fillStyle = gradient;
+        this.ctx.fillRect(0, 0, 900, 500);
+        
+        // 太平洋
+        this.ctx.fillStyle = '#0284c7';
+        this.ctx.fillRect(100, 150, 700, 250);
+        
+        // 南美洲
+        this.ctx.fillStyle = '#22c55e';
+        this.ctx.beginPath();
+        this.ctx.moveTo(800, 150);
+        this.ctx.lineTo(900, 200);
+        this.ctx.lineTo(900, 400);
+        this.ctx.lineTo(800, 400);
+        this.ctx.closePath();
+        this.ctx.fill();
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = '12px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('南美', 850, 280);
+        
+        // 亚洲/澳洲
+        this.ctx.fillStyle = '#22c55e';
+        this.ctx.fillRect(0, 150, 100, 250);
+        this.ctx.fillStyle = 'white';
+        this.ctx.fillText('亚洲', 50, 280);
+        
+        const isElNino = this.experimentState.season === 'elnino';
+        
+        if (isElNino) {
+            // 厄尔尼诺年份
+            this.ctx.fillStyle = '#fbbf24';
+            this.ctx.font = 'bold 18px Arial';
+            this.ctx.fillText('⚠️ 厄尔尼诺年份', 450, 50);
+            
+            // 暖水向东扩展
+            const warmGradient = this.ctx.createLinearGradient(100, 0, 800, 0);
+            warmGradient.addColorStop(0, 'rgba(239, 68, 68, 0.3)');
+            warmGradient.addColorStop(1, 'rgba(239, 68, 68, 0.7)');
+            this.ctx.fillStyle = warmGradient;
+            this.ctx.fillRect(100, 200, 700, 150);
+            
+            // 信风减弱
+            this.ctx.strokeStyle = 'rgba(251, 191, 36, 0.5)';
+            this.ctx.lineWidth = 2;
+            this.ctx.setLineDash([5, 10]);
+            this.drawArrow(700, 280, 600, 280);
+            this.ctx.setLineDash([]);
+            this.ctx.fillStyle = 'white';
+            this.ctx.font = '12px Arial';
+            this.ctx.fillText('信风减弱', 650, 260);
+            
+            // 秘鲁寒流减弱
+            this.ctx.fillStyle = '#ef4444';
+            this.ctx.fillText('秘鲁寒流减弱', 780, 350);
+            this.ctx.fillText('海温升高', 780, 370);
+            this.ctx.fillText('渔业受损', 780, 390);
+        } else {
+            // 正常年份
+            this.ctx.fillStyle = '#22c55e';
+            this.ctx.font = 'bold 18px Arial';
+            this.ctx.fillText('✓ 正常年份', 450, 50);
+            
+            // 正常温度分布
+            const normalGradient = this.ctx.createLinearGradient(100, 0, 800, 0);
+            normalGradient.addColorStop(0, 'rgba(239, 68, 68, 0.6)');
+            normalGradient.addColorStop(0.7, 'rgba(59, 130, 246, 0.3)');
+            normalGradient.addColorStop(1, 'rgba(59, 130, 246, 0.6)');
+            this.ctx.fillStyle = normalGradient;
+            this.ctx.fillRect(100, 200, 700, 150);
+            
+            // 信风正常
+            this.ctx.strokeStyle = '#fbbf24';
+            this.ctx.lineWidth = 3;
+            this.drawArrow(700, 280, 500, 280);
+            this.drawArrow(500, 280, 300, 280);
+            this.ctx.fillStyle = 'white';
+            this.ctx.font = '12px Arial';
+            this.ctx.fillText('信风正常', 600, 260);
+            
+            // 秘鲁寒流
+            this.ctx.strokeStyle = '#3b82f6';
+            this.ctx.lineWidth = 4;
+            this.drawArrow(780, 380, 780, 320);
+            this.ctx.fillStyle = '#3b82f6';
+            this.ctx.fillText('秘鲁寒流', 780, 400);
+        }
+        
+        // 标注
         this.ctx.fillStyle = 'white';
         this.ctx.font = '14px Arial';
         this.ctx.textAlign = 'center';
-        this.ctx.fillText('补偿流：当一个区域的海水被移走时，周围的海水会流过来补充', 450, 60);
+        this.ctx.fillText('点击切换查看正常年份和厄尔尼诺年份的差异', 450, 480);
+    }
+    
+    drawChapter5Thermohaline() {
+        // 温盐环流
+        const gradient = this.ctx.createLinearGradient(0, 0, 0, 500);
+        gradient.addColorStop(0, '#1e3a5f');
+        gradient.addColorStop(1, '#0f172a');
+        this.ctx.fillStyle = gradient;
+        this.ctx.fillRect(0, 0, 900, 500);
+        
+        // 简化的世界地图轮廓
+        this.ctx.fillStyle = '#22c55e';
+        // 北美
+        this.ctx.fillRect(50, 80, 150, 120);
+        // 欧洲
+        this.ctx.fillRect(350, 60, 100, 100);
+        // 非洲
+        this.ctx.fillRect(350, 180, 80, 150);
+        // 亚洲
+        this.ctx.fillRect(500, 50, 200, 150);
+        // 澳洲
+        this.ctx.fillRect(650, 280, 80, 60);
+        // 南美
+        this.ctx.fillRect(150, 250, 60, 150);
+        // 南极
+        this.ctx.fillRect(0, 420, 900, 80);
+        this.ctx.fillStyle = 'white';
+        this.ctx.fillText('南极', 450, 460);
+        
+        // 表层暖流（红色）
+        this.ctx.strokeStyle = '#ef4444';
+        this.ctx.lineWidth = 5;
+        this.ctx.beginPath();
+        this.ctx.moveTo(250, 300);
+        this.ctx.quadraticCurveTo(300, 200, 400, 180);
+        this.ctx.quadraticCurveTo(500, 160, 600, 200);
+        this.ctx.quadraticCurveTo(700, 250, 750, 300);
+        this.ctx.stroke();
+        
+        // 深层冷流（蓝色）
+        this.ctx.strokeStyle = '#3b82f6';
+        this.ctx.lineWidth = 5;
+        this.ctx.setLineDash([10, 5]);
+        this.ctx.beginPath();
+        this.ctx.moveTo(400, 150);
+        this.ctx.quadraticCurveTo(350, 300, 300, 400);
+        this.ctx.quadraticCurveTo(400, 420, 600, 400);
+        this.ctx.quadraticCurveTo(750, 380, 800, 350);
+        this.ctx.stroke();
+        this.ctx.setLineDash([]);
+        
+        // 下沉区域
+        this.ctx.fillStyle = '#3b82f6';
+        this.ctx.beginPath();
+        this.ctx.arc(400, 150, 15, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = '12px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('冷水下沉', 400, 130);
+        
+        // 图例
+        this.ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        this.ctx.fillRect(20, 20, 180, 80);
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = '12px Arial';
+        this.ctx.textAlign = 'left';
+        this.ctx.fillText('━ 表层暖流', 30, 45);
+        this.ctx.fillStyle = '#ef4444';
+        this.ctx.fillRect(30, 35, 20, 3);
+        this.ctx.fillStyle = 'white';
+        this.ctx.fillText('┅ 深层冷流', 30, 70);
+        this.ctx.fillStyle = '#3b82f6';
+        this.ctx.fillRect(30, 60, 20, 3);
+        this.ctx.fillStyle = 'white';
+        this.ctx.fillText('● 下沉区', 30, 95);
+        
+        // 标注
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = 'bold 16px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('🌊 大西洋温盐环流（全球传送带）', 450, 480);
+    }
+    
+    // 世界地图基础
+    drawWorldMapBase() {
+        // 海洋背景
+        const gradient = this.ctx.createLinearGradient(0, 0, 0, 500);
+        gradient.addColorStop(0, '#1e3a5f');
+        gradient.addColorStop(0.5, '#0ea5e9');
+        gradient.addColorStop(1, '#1e3a5f');
+        this.ctx.fillStyle = gradient;
+        this.ctx.fillRect(0, 0, 900, 500);
+        
+        // 简化的大陆轮廓
+        this.ctx.fillStyle = '#22c55e';
+        // 北美
+        this.ctx.fillRect(50, 80, 120, 150);
+        // 南美
+        this.ctx.fillRect(100, 280, 60, 180);
+        // 欧洲
+        this.ctx.fillRect(380, 60, 80, 80);
+        // 非洲
+        this.ctx.fillRect(380, 160, 100, 200);
+        // 亚洲
+        this.ctx.fillRect(500, 50, 250, 200);
+        // 澳洲
+        this.ctx.fillRect(700, 320, 100, 80);
+        
+        // 赤道线
+        this.ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+        this.ctx.lineWidth = 1;
+        this.ctx.setLineDash([5, 5]);
+        this.ctx.beginPath();
+        this.ctx.moveTo(0, 250);
+        this.ctx.lineTo(900, 250);
+        this.ctx.stroke();
+        this.ctx.setLineDash([]);
+        this.ctx.fillStyle = 'rgba(255,255,255,0.5)';
+        this.ctx.font = '10px Arial';
+        this.ctx.textAlign = 'left';
+        this.ctx.fillText('赤道', 5, 245);
+    }
+    
+    // 绘制曲线箭头
+    drawCurvedArrow(x1, y1, cx, cy, x2, y2, showHead = true) {
+        this.ctx.beginPath();
+        this.ctx.moveTo(x1, y1);
+        this.ctx.quadraticCurveTo(cx, cy, x2, y2);
+        this.ctx.stroke();
+        
+        if (showHead) {
+            const angle = Math.atan2(y2 - cy, x2 - cx);
+            const headLen = 12;
+            this.ctx.beginPath();
+            this.ctx.moveTo(x2, y2);
+            this.ctx.lineTo(x2 - headLen * Math.cos(angle - Math.PI / 6), y2 - headLen * Math.sin(angle - Math.PI / 6));
+            this.ctx.lineTo(x2 - headLen * Math.cos(angle + Math.PI / 6), y2 - headLen * Math.sin(angle + Math.PI / 6));
+            this.ctx.closePath();
+            this.ctx.fillStyle = this.ctx.strokeStyle;
+            this.ctx.fill();
+        }
     }
 }
 
