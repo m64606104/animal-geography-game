@@ -17,37 +17,37 @@ class GameState {
         this.animals = {
             penguin: {
                 name: '企鹅',
-                color: '#2c3e50',
+                emoji: '🐧',
                 habitat: 'antarctica',
-                maps: ['antarctica', 'ocean', 'ice_cave'],
+                maps: ['antarctica_ice_sheet', 'antarctica_peninsula', 'ross_sea', 'antarctica_plateau', 'research_station'],
                 description: '生活在南极的可爱鸟类'
             },
             panda: {
                 name: '大熊猫',
-                color: '#1a1a1a',
+                emoji: '🐼',
                 habitat: 'bamboo_forest',
-                maps: ['bamboo_forest', 'mountain', 'river_valley'],
+                maps: ['sichuan_basin', 'qinling_mountains', 'minjiang_valley', 'bamboo_forest', 'nature_reserve'],
                 description: '中国国宝，爱吃竹子'
             },
             camel: {
                 name: '骆驼',
-                color: '#d2691e',
+                emoji: '🐫',
                 habitat: 'desert',
-                maps: ['desert', 'oasis', 'sand_dunes'],
+                maps: ['taklamakan_desert', 'desert_oasis', 'gobi_desert', 'desert_edge', 'silk_road'],
                 description: '沙漠之舟，耐渴能手'
             },
             kangaroo: {
                 name: '袋鼠',
-                color: '#8b4513',
+                emoji: '🦘',
                 habitat: 'australia',
-                maps: ['australia_outback', 'eucalyptus_forest', 'great_barrier_reef'],
+                maps: ['great_dividing_range', 'murray_darling_basin', 'great_barrier_reef', 'outback_desert', 'sydney_harbour'],
                 description: '澳大利亚跳跃大师'
             },
             polar_bear: {
                 name: '北极熊',
-                color: '#f0f0f0',
+                emoji: '🐻‍❄️',
                 habitat: 'arctic',
-                maps: ['arctic_ice', 'tundra', 'frozen_ocean'],
+                maps: ['arctic_ocean_ice', 'greenland', 'tundra_zone', 'arctic_circle', 'inuit_village'],
                 description: '北极霸主，游泳健将'
             }
         };
@@ -379,6 +379,19 @@ class GameState {
     }
     
     createMapByType(mapType, index) {
+        // 优先使用扩展地图配置
+        if (typeof EXTENDED_MAP_TEMPLATES !== 'undefined' && EXTENDED_MAP_TEMPLATES[mapType]) {
+            const template = JSON.parse(JSON.stringify(EXTENDED_MAP_TEMPLATES[mapType]));
+            // 更新questionId
+            template.terrain.forEach(t => {
+                if (t.hasOwnProperty('questionId')) {
+                    t.questionId = index * 5 + t.questionId % 5;
+                }
+            });
+            return template;
+        }
+        
+        // 回退到默认配置
         const mapTemplates = {
             antarctica: {
                 name: '南极冰原',
@@ -670,22 +683,41 @@ class GameState {
         this.questions = [];
         let questionId = 0;
         
-        // 获取对应栖息地的题库
-        const bank = this.habitatQuestionBank[habitat] || this.habitatQuestionBank.antarctica;
-        
-        // 为每张地图随机抽取题目（允许重复以确保有足够题目）
+        // 为每张地图生成题目
         this.maps.forEach((map, mapIndex) => {
-            const shuffled = this.shuffleArray([...bank]);
+            const mapName = this.animals[this.currentAnimal].maps[mapIndex];
             
-            // 每张地图需要5题，如果题库不够就循环使用
-            for (let i = 0; i < 5; i++) {
-                const question = shuffled[i % shuffled.length];
-                this.questions.push({
-                    id: questionId++,
-                    question: question.question,
-                    options: question.options,
-                    correct: question.correct
-                });
+            // 优先使用扩展题库
+            if (typeof EXTENDED_QUESTION_BANK !== 'undefined' && EXTENDED_QUESTION_BANK[mapName]) {
+                const bank = EXTENDED_QUESTION_BANK[mapName];
+                const shuffled = this.shuffleArray([...bank]);
+                
+                // 每张地图随机抽取5题
+                for (let i = 0; i < 5; i++) {
+                    const question = shuffled[i % shuffled.length];
+                    this.questions.push({
+                        id: questionId++,
+                        question: question.question,
+                        options: question.options,
+                        correct: question.correct,
+                        type: question.type || '综合'
+                    });
+                }
+            } else {
+                // 回退到默认题库
+                const bank = this.habitatQuestionBank[habitat] || this.habitatQuestionBank.antarctica;
+                const shuffled = this.shuffleArray([...bank]);
+                
+                // 每张地图需要5题，如果题库不够就循环使用
+                for (let i = 0; i < 5; i++) {
+                    const question = shuffled[i % shuffled.length];
+                    this.questions.push({
+                        id: questionId++,
+                        question: question.question,
+                        options: question.options,
+                        correct: question.correct
+                    });
+                }
             }
         });
     }
