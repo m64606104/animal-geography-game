@@ -740,88 +740,143 @@ class GameState {
     setupLobby() {
         const gameLobby = document.getElementById('game-lobby');
         const animalSelectionScreen = document.getElementById('animal-selection-screen');
-        const gameRulesScreen = document.getElementById('game-rules-screen');
+        const startGameMenuBtn = document.getElementById('start-game-menu-btn');
+        
+        // 确保元素存在
+        if (!startGameMenuBtn) {
+            console.error('找不到开始游戏按钮');
+            return;
+        }
         
         // 游戏大厅 - 开始游戏按钮
-        const startGameMenuBtn = document.getElementById('start-game-menu-btn');
-        startGameMenuBtn.addEventListener('click', () => {
-            gameLobby.classList.add('hidden');
-            animalSelectionScreen.classList.remove('hidden');
+        startGameMenuBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('开始游戏按钮被点击');
+            
+            if (gameLobby) gameLobby.classList.add('hidden');
+            if (animalSelectionScreen) animalSelectionScreen.classList.remove('hidden');
         });
         
-        // 注意：新设计中专题学习和游戏说明按钮已移除
-        // 专题学习通过主页的链接直接跳转到 ocean-explore.html
-        // 游戏说明界面保留但不在主页显示入口
-        
         // 动物选择界面
+        this.setupAnimalSelection();
+    }
+    
+    setupAnimalSelection() {
+        const animalSelectionScreen = document.getElementById('animal-selection-screen');
+        const gameLobby = document.getElementById('game-lobby');
         const animalCards = document.querySelectorAll('.animal-card');
         const confirmAnimalBtn = document.getElementById('confirm-animal-btn');
         const backToLobbyBtn = document.getElementById('back-to-lobby-btn');
         
+        if (!animalCards.length || !confirmAnimalBtn || !backToLobbyBtn) {
+            console.error('动物选择界面元素缺失');
+            return;
+        }
+        
         // 动物卡片选择
         animalCards.forEach(card => {
-            card.addEventListener('click', () => {
-                console.log('动物卡片被点击:', card.dataset.animal);
-                // 移除其他卡片的选中状态
+            card.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const animal = card.dataset.animal;
+                console.log('选择动物:', animal);
+                
+                // 移除所有选中状态
                 animalCards.forEach(c => c.classList.remove('selected'));
-                // 添加当前卡片的选中状态
+                
+                // 添加当前选中状态
                 card.classList.add('selected');
-                // 保存选择的动物
-                this.selectedAnimal = card.dataset.animal;
-                console.log('已选择动物:', this.selectedAnimal);
+                
+                // 保存选择
+                this.selectedAnimal = animal;
+                
                 // 启用确认按钮
                 confirmAnimalBtn.disabled = false;
-                console.log('确认按钮已启用');
+                confirmAnimalBtn.style.opacity = '1';
+                confirmAnimalBtn.style.cursor = 'pointer';
             });
         });
         
-        // 确认选择动物并开始游戏
-        confirmAnimalBtn.addEventListener('click', () => {
-            console.log('确认按钮被点击');
-            if (this.selectedAnimal) {
-                console.log('开始游戏，动物:', this.selectedAnimal);
-                this.currentAnimal = this.selectedAnimal;
-                this.player.animal = this.currentAnimal;
-                
-                // 隐藏动物选择界面
-                animalSelectionScreen.classList.add('hidden');
-                
-                // 显示游戏控制按钮
-                const gameControls = document.getElementById('game-controls');
-                if (gameControls) {
-                    gameControls.classList.remove('hidden');
-                }
-                
-                // 显示顶部和底部游戏信息栏
-                const gameHeader = document.getElementById('game-header');
-                const gameFooter = document.getElementById('game-footer');
-                if (gameHeader) gameHeader.classList.remove('hidden');
-                if (gameFooter) gameFooter.classList.remove('hidden');
-                
-                // 显示游戏画布
-                const canvasContainer = document.getElementById('canvas-container');
-                if (canvasContainer) canvasContainer.classList.remove('hidden');
-                
-                // 生成游戏内容
-                this.generateAnimalContent();
-                
-                // 更新UI并启动游戏
-                this.updateUI();
-                this.gameStarted = true;
-                this.gameLoop();
+        // 确认选择按钮
+        confirmAnimalBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (!this.selectedAnimal) {
+                alert('请先选择一个动物！');
+                return;
             }
+            
+            console.log('确认选择，开始游戏:', this.selectedAnimal);
+            
+            this.currentAnimal = this.selectedAnimal;
+            this.player.animal = this.currentAnimal;
+            
+            // 隐藏动物选择界面
+            if (animalSelectionScreen) animalSelectionScreen.classList.add('hidden');
+            
+            // 显示游戏相关元素
+            this.showGameUI();
+            
+            // 生成游戏内容
+            this.generateAnimalContent();
+            
+            // 启动游戏
+            this.updateUI();
+            this.gameStarted = true;
+            this.gameLoop();
         });
         
-        // 从动物选择返回大厅
-        backToLobbyBtn.addEventListener('click', () => {
-            console.log('返回按钮被点击');
-            animalSelectionScreen.classList.add('hidden');
-            gameLobby.classList.remove('hidden');
+        // 返回按钮
+        backToLobbyBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('返回主页');
+            
+            if (animalSelectionScreen) animalSelectionScreen.classList.add('hidden');
+            if (gameLobby) gameLobby.classList.remove('hidden');
+            
             // 重置选择
             animalCards.forEach(c => c.classList.remove('selected'));
             this.selectedAnimal = null;
             confirmAnimalBtn.disabled = true;
+            confirmAnimalBtn.style.opacity = '0.5';
         });
+    }
+    
+    showGameUI() {
+        // 显示游戏控制按钮
+        const gameControls = document.getElementById('game-controls');
+        if (gameControls) gameControls.classList.remove('hidden');
+        
+        // 显示顶部和底部信息栏
+        const gameHeader = document.getElementById('game-header');
+        const gameFooter = document.getElementById('game-footer');
+        if (gameHeader) gameHeader.classList.remove('hidden');
+        if (gameFooter) gameFooter.classList.remove('hidden');
+        
+        // 显示游戏画布
+        const canvasContainer = document.getElementById('canvas-container');
+        if (canvasContainer) canvasContainer.classList.remove('hidden');
+    }
+    
+    hideGameUI() {
+        // 隐藏游戏控制按钮
+        const gameControls = document.getElementById('game-controls');
+        if (gameControls) gameControls.classList.add('hidden');
+        
+        // 隐藏顶部和底部信息栏
+        const gameHeader = document.getElementById('game-header');
+        const gameFooter = document.getElementById('game-footer');
+        if (gameHeader) gameHeader.classList.add('hidden');
+        if (gameFooter) gameFooter.classList.add('hidden');
+        
+        // 隐藏游戏画布
+        const canvasContainer = document.getElementById('canvas-container');
+        if (canvasContainer) canvasContainer.classList.add('hidden');
     }
     
     setupEventListeners() {
@@ -887,21 +942,8 @@ class GameState {
             this.isRunning = false;
             this.gameStarted = false;
             
-            // 隐藏游戏控制按钮
-            const gameControls = document.getElementById('game-controls');
-            if (gameControls) {
-                gameControls.classList.add('hidden');
-            }
-            
-            // 隐藏顶部和底部游戏信息栏
-            const gameHeader = document.getElementById('game-header');
-            const gameFooter = document.getElementById('game-footer');
-            if (gameHeader) gameHeader.classList.add('hidden');
-            if (gameFooter) gameFooter.classList.add('hidden');
-            
-            // 隐藏游戏画布
-            const canvasContainer = document.getElementById('canvas-container');
-            if (canvasContainer) canvasContainer.classList.add('hidden');
+            // 隐藏所有游戏UI
+            this.hideGameUI();
             
             // 返回游戏大厅
             const gameLobby = document.getElementById('game-lobby');

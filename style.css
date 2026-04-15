@@ -45,7 +45,7 @@ body {
 }
 
 .game-header.hidden {
-    display: none;
+    display: none !important;
 }
 
 .health-display {
@@ -106,7 +106,7 @@ body {
 }
 
 .canvas-container.hidden {
-    display: none;
+    display: none !important;
 }
 
 #game-canvas {
@@ -135,7 +135,7 @@ body {
 }
 
 .modal.hidden {
-    display: none;
+    display: none !important;
 }
 
 .question-content, .game-over-content {
@@ -252,7 +252,7 @@ body {
 }
 
 .game-footer.hidden {
-    display: none;
+    display: none !important;
 }
 
 .controls {
@@ -277,11 +277,11 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 2000;
+    z-index: 1500;
 }
 
 .game-lobby.hidden {
-    display: none;
+    display: none !important;
 }
 
 .lobby-content {
@@ -550,7 +550,7 @@ body {
 }
 
 .game-controls.hidden {
-    display: none;
+    display: none !important;
 }
 
 .control-btn {
