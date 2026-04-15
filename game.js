@@ -817,6 +817,10 @@ class GameState {
                 if (gameHeader) gameHeader.classList.remove('hidden');
                 if (gameFooter) gameFooter.classList.remove('hidden');
                 
+                // 显示游戏画布
+                const canvasContainer = document.getElementById('canvas-container');
+                if (canvasContainer) canvasContainer.classList.remove('hidden');
+                
                 // 生成游戏内容
                 this.generateAnimalContent();
                 
@@ -912,6 +916,10 @@ class GameState {
             const gameFooter = document.getElementById('game-footer');
             if (gameHeader) gameHeader.classList.add('hidden');
             if (gameFooter) gameFooter.classList.add('hidden');
+            
+            // 隐藏游戏画布
+            const canvasContainer = document.getElementById('canvas-container');
+            if (canvasContainer) canvasContainer.classList.add('hidden');
             
             // 返回游戏大厅
             const gameLobby = document.getElementById('game-lobby');
