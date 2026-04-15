@@ -1353,6 +1353,25 @@ class GameState {
                 this.ctx.strokeRect(terrain.x, terrain.y, terrain.width, terrain.height);
                 break;
                 
+            // 新增地形类型 - 使用通用绘制方法
+            default:
+                // 对于未定义的地形类型，使用通用绘制
+                const color = isCompleted ? '#90EE90' : this.getTerrainColor(terrain.type);
+                this.ctx.fillStyle = color;
+                this.ctx.fillRect(terrain.x, terrain.y, terrain.width, terrain.height);
+                this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+                this.ctx.lineWidth = 2;
+                this.ctx.strokeRect(terrain.x, terrain.y, terrain.width, terrain.height);
+                
+                // 添加文字标识（仅在开发模式）
+                if (terrain.hasOwnProperty('questionId')) {
+                    this.ctx.fillStyle = '#fff';
+                    this.ctx.font = '12px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText('?', terrain.x + terrain.width/2, terrain.y + terrain.height/2);
+                }
+                break;
+                
             // 保留原有的地形类型
             case 'tree':
                 this.drawTree(terrain.x, terrain.y, terrain.width, terrain.height, isCompleted);
@@ -1519,6 +1538,158 @@ class GameState {
         this.ctx.lineTo(currentMapData.endX - 20, currentMapData.endY);
         this.ctx.stroke();
         this.ctx.setLineDash([]);
+    }
+    
+    getTerrainColor(terrainType) {
+        // 为不同地形类型分配颜色
+        const colorMap = {
+            // 南极场景
+            'ice_hill': '#C5E3EA',
+            'ice_crevasse': '#A8D5E2',
+            'ice_dome': '#D0E8F0',
+            'ice_ridge': '#B8DCE8',
+            'ice_formation': '#C0E0E8',
+            'snow_drift': '#F0F8FF',
+            'ice_crystal': '#E0F0F8',
+            'snow_patch': '#FFFFFF',
+            'ice_shard': '#D8E8F0',
+            'rocky_cliff': '#696969',
+            'ice_shelf': '#B0D8E8',
+            'penguin_colony': '#8B7D6B',
+            'coastal_ice': '#A0D0E0',
+            'research_marker': '#FF6B6B',
+            'rock_outcrop': '#808080',
+            'ice_berg_small': '#C8E0E8',
+            'sea_ice': '#B8D4E8',
+            'ice_floe': '#A8C8D8',
+            'tabular_iceberg': '#D0E0E8',
+            'pack_ice': '#C0D8E8',
+            'ice_shelf_edge': '#B0D0E0',
+            'water_ripple': '#4682B4',
+            'seal_hole': '#5F9EA0',
+            'sastrugi': '#E8F0F8',
+            'wind_scoop': '#D8E8F0',
+            'ice_mound': '#E0F0F8',
+            'crevasse_field': '#C0D8E8',
+            'pole_marker': '#FF4444',
+            'wind_tail': '#F0F8FF',
+            'station_building': '#8B4513',
+            'weather_station': '#4169E1',
+            'antenna_tower': '#696969',
+            'fuel_depot': '#FF8C00',
+            'runway_marker': '#FFD700',
+            'supply_crate': '#8B7355',
+            
+            // 大熊猫场景
+            'basin_hill': '#D0B8A0',
+            'rice_terrace': '#90EE90',
+            'river_bend': '#4682B4',
+            'farmland': '#F0E68C',
+            'village_house': '#8B4513',
+            'mountain_peak': '#A0A0A0',
+            'forest_zone': '#228B22',
+            'alpine_meadow': '#98FB98',
+            'rock_face': '#696969',
+            'mountain_pass': '#B0B0B0',
+            'river_valley': '#5F9EA0',
+            'river_terrace': '#87CEEB',
+            'alluvial_fan': '#DEB887',
+            'gorge_wall': '#8B7355',
+            'river_stone': '#A9A9A9',
+            'bamboo_grove': '#90EE90',
+            'bamboo_thick': '#7CFC00',
+            'panda_den': '#8B7D6B',
+            'bamboo_shoot': '#ADFF2F',
+            'forest_stream': '#4682B4',
+            'reserve_sign': '#8B4513',
+            'watch_tower': '#696969',
+            'feeding_station': '#DEB887',
+            'camera_trap': '#2F4F4F',
+            'patrol_path': '#8FBC8F',
+            
+            // 骆驼场景
+            'crescent_dune': '#F4E4C1',
+            'barchan_dune': '#E8D4B0',
+            'sand_ridge': '#F0E0C0',
+            'yardang': '#D8C8A8',
+            'desert_pavement': '#C8B898',
+            'palm_tree': '#228B22',
+            'spring_pool': '#4682B4',
+            'date_palm': '#8B7355',
+            'irrigation_canal': '#5F9EA0',
+            'mud_house': '#D2691E',
+            'gravel_field': '#A9A9A9',
+            'rock_desert': '#8B7D6B',
+            'desert_varnish': '#696969',
+            'wind_erosion': '#C0B090',
+            'camel_thorn': '#9ACD32',
+            'semi_desert': '#E0D0B0',
+            'sparse_grass': '#BDB76B',
+            'degraded_land': '#D8C8A8',
+            'sand_fixation': '#8FBC8F',
+            'shelter_belt': '#228B22',
+            'ancient_ruins': '#8B7355',
+            'caravanserai': '#D2691E',
+            'trade_post': '#CD853F',
+            'beacon_tower': '#A0522D',
+            'merchant_camp': '#DEB887',
+            
+            // 袋鼠场景
+            'mountain_ridge': '#A0A0A0',
+            'rainforest_zone': '#228B22',
+            'windward_slope': '#90EE90',
+            'leeward_slope': '#BDB76B',
+            'eucalyptus_forest': '#8FBC8F',
+            'wheat_field': '#F0E68C',
+            'irrigation_system': '#4682B4',
+            'river_murray': '#5F9EA0',
+            'sheep_station': '#DEB887',
+            'water_storage': '#87CEEB',
+            'coral_reef': '#FF6347',
+            'reef_lagoon': '#40E0D0',
+            'coral_polyp': '#FF7F50',
+            'reef_fish': '#FFD700',
+            'reef_island': '#F0E68C',
+            'red_sand': '#CD5C5C',
+            'spinifex_grass': '#9ACD32',
+            'uluru_rock': '#A0522D',
+            'desert_oak': '#8B7355',
+            'billabong': '#4682B4',
+            'harbour_bridge': '#696969',
+            'opera_house': '#F0F8FF',
+            'container_port': '#4169E1',
+            'ferry_terminal': '#87CEEB',
+            'coastal_city': '#D3D3D3',
+            
+            // 北极熊场景
+            'multi_year_ice': '#E0F0F8',
+            'pressure_ridge': '#C8E0E8',
+            'lead_water': '#4682B4',
+            'ice_floe_arctic': '#D0E8F0',
+            'polar_bear_track': '#F0F8FF',
+            'ice_sheet_greenland': '#E8F4F8',
+            'glacier_tongue': '#C0D8E8',
+            'fjord': '#5F9EA0',
+            'iceberg_calving': '#B8D4E8',
+            'nunatak': '#696969',
+            'permafrost': '#D8E8D0',
+            'tundra_moss': '#8FBC8F',
+            'arctic_willow': '#90EE90',
+            'thermokarst': '#C8D0C0',
+            'caribou_trail': '#A9A9A9',
+            'midnight_sun': '#FFD700',
+            'polar_night': '#2F4F4F',
+            'aurora_borealis': '#00FF7F',
+            'arctic_circle_sign': '#FF4444',
+            'observation_post': '#696969',
+            'igloo': '#F0F8FF',
+            'kayak_rack': '#8B7355',
+            'dog_sled': '#DEB887',
+            'hunting_ground': '#BDB76B',
+            'community_hall': '#8B4513'
+        };
+        
+        return colorMap[terrainType] || '#808080'; // 默认灰色
     }
     
     drawPlayer() {
