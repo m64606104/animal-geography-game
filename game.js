@@ -388,6 +388,9 @@ class GameState {
                     t.questionId = index * 5 + t.questionId % 5;
                 }
             });
+            // 确保有width和height
+            if (!template.width) template.width = 1200;
+            if (!template.height) template.height = 600;
             return template;
         }
         
