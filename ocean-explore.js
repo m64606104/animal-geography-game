@@ -1793,147 +1793,350 @@ class OceanExploreSystem {
     
     // ========== 第2章实验可视化 ==========
     drawChapter2Wind() {
-        // 风力实验可视化
-        this.ctx.fillStyle = '#0ea5e9';
+        // 风力实验 - 俯视图展示风如何驱动表层海水
+        
+        // 背景 - 俯视海面
+        const seaGradient = this.ctx.createRadialGradient(450, 250, 50, 450, 250, 400);
+        seaGradient.addColorStop(0, '#0ea5e9');
+        seaGradient.addColorStop(1, '#0369a1');
+        this.ctx.fillStyle = seaGradient;
         this.ctx.fillRect(0, 0, 900, 500);
         
-        // 水面
-        this.ctx.fillStyle = '#0284c7';
-        this.ctx.fillRect(0, 250, 900, 250);
-        
-        // 风向箭头
-        const windDir = this.experimentState.windDirection || 90;
-        const windStr = this.experimentState.windStrength || 50;
-        
-        this.ctx.save();
-        this.ctx.translate(450, 120);
-        this.ctx.rotate((windDir - 90) * Math.PI / 180);
-        
-        // 风箭头
-        const arrowSize = 30 + windStr * 0.5;
-        this.ctx.fillStyle = '#fbbf24';
-        this.ctx.beginPath();
-        this.ctx.moveTo(arrowSize, 0);
-        this.ctx.lineTo(-arrowSize/2, -arrowSize/2);
-        this.ctx.lineTo(-arrowSize/2, arrowSize/2);
-        this.ctx.closePath();
-        this.ctx.fill();
-        this.ctx.restore();
-        
-        // 风的标签
-        this.ctx.fillStyle = 'white';
-        this.ctx.font = 'bold 16px Arial';
-        this.ctx.textAlign = 'center';
-        this.ctx.fillText('🌬️ 风', 450, 80);
-        
-        // 海水流动粒子
-        const speed = windStr / 50;
-        for (let i = 0; i < 30; i++) {
-            const x = (this.animationFrame * speed + i * 30) % 900;
-            const y = 300 + Math.sin(x * 0.02) * 20 + (i % 5) * 30;
-            this.ctx.fillStyle = 'rgba(255,255,255,0.6)';
+        // 海面波纹
+        this.ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+        this.ctx.lineWidth = 1;
+        for (let r = 50; r < 400; r += 40) {
             this.ctx.beginPath();
-            this.ctx.arc(x, y, 4, 0, Math.PI * 2);
-            this.ctx.fill();
+            this.ctx.arc(450, 250, r, 0, Math.PI * 2);
+            this.ctx.stroke();
         }
         
-        // 说明
+        const windDir = this.experimentState.windDirection || 90;
+        const windStr = this.experimentState.windStrength || 50;
+        const windRad = (windDir - 90) * Math.PI / 180; // 转换为弧度，0度=东
+        
+        // 风向指示区域（顶部）
+        this.ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        this.ctx.fillRect(300, 10, 300, 60);
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = 'bold 14px Arial';
+        this.ctx.textAlign = 'center';
+        
+        const directions = ['东风→', '东南风↘', '南风↓', '西南风↙', '西风←', '西北风↖', '北风↑', '东北风↗'];
+        const dirIndex = Math.round(windDir / 45) % 8;
+        this.ctx.fillText(`🌬️ ${directions[dirIndex]}  风力: ${windStr}%`, 450, 35);
+        this.ctx.font = '12px Arial';
+        this.ctx.fillText('风吹动表层海水，形成风海流', 450, 55);
+        
+        // 绘制多个风箭头
+        this.ctx.save();
+        for (let i = 0; i < 5; i++) {
+            const offsetX = (i - 2) * 120;
+            const offsetY = -80;
+            
+            this.ctx.save();
+            this.ctx.translate(450 + offsetX, 130 + offsetY);
+            this.ctx.rotate(windRad);
+            
+            // 风箭头
+            const size = 20 + windStr * 0.3;
+            this.ctx.fillStyle = `rgba(251, 191, 36, ${0.6 + windStr/200})`;
+            this.ctx.beginPath();
+            this.ctx.moveTo(size, 0);
+            this.ctx.lineTo(-size * 0.4, -size * 0.5);
+            this.ctx.lineTo(-size * 0.2, 0);
+            this.ctx.lineTo(-size * 0.4, size * 0.5);
+            this.ctx.closePath();
+            this.ctx.fill();
+            this.ctx.restore();
+        }
+        this.ctx.restore();
+        
+        // 海水流动粒子 - 跟随风向移动
+        const speed = windStr / 30;
+        const dx = Math.cos(windRad) * speed;
+        const dy = Math.sin(windRad) * speed;
+        
+        for (let i = 0; i < 50; i++) {
+            // 粒子位置随时间和风向移动
+            let px = ((this.animationFrame * dx + i * 47) % 800) + 50;
+            let py = ((this.animationFrame * dy + i * 31) % 300) + 150;
+            
+            // 粒子大小随深度变化（表层大，深层小）
+            const depth = (i % 4);
+            const size = 6 - depth;
+            const alpha = 0.8 - depth * 0.15;
+            
+            this.ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+            this.ctx.beginPath();
+            this.ctx.arc(px, py, size, 0, Math.PI * 2);
+            this.ctx.fill();
+            
+            // 粒子尾迹
+            if (windStr > 30) {
+                this.ctx.strokeStyle = `rgba(255,255,255,${alpha * 0.3})`;
+                this.ctx.lineWidth = size * 0.5;
+                this.ctx.beginPath();
+                this.ctx.moveTo(px, py);
+                this.ctx.lineTo(px - dx * 10, py - dy * 10);
+                this.ctx.stroke();
+            }
+        }
+        
+        // 底部说明
         this.ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        this.ctx.fillRect(50, 420, 800, 60);
+        this.ctx.fillRect(50, 430, 800, 55);
         this.ctx.fillStyle = 'white';
         this.ctx.font = '14px Arial';
-        this.ctx.fillText('观察：风持续吹动海面，海水会沿着风向流动', 450, 445);
-        this.ctx.fillText(`当前风力：${windStr}%，海水流速随风力增大而加快`, 450, 465);
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('📌 风海流原理：盛行风持续吹拂海面，通过摩擦力带动表层海水流动', 450, 450);
+        this.ctx.fillText('💡 信风带形成赤道洋流，西风带形成西风漂流', 450, 472);
     }
     
     drawChapter2Density() {
-        // 温度密度实验
-        this.ctx.fillStyle = '#1e3a5f';
+        // 温度密度实验 - 展示热对流
+        
+        // 背景
+        this.ctx.fillStyle = '#1e293b';
         this.ctx.fillRect(0, 0, 900, 500);
         
         const temp = this.experimentState.temperature || 15;
         
-        // 左边：冷水
-        const coldGradient = this.ctx.createLinearGradient(100, 100, 100, 400);
-        coldGradient.addColorStop(0, '#93c5fd');
-        coldGradient.addColorStop(1, '#1e40af');
-        this.ctx.fillStyle = coldGradient;
-        this.ctx.fillRect(100, 100, 200, 300);
+        // 绘制水槽
+        this.ctx.strokeStyle = '#64748b';
+        this.ctx.lineWidth = 4;
+        this.ctx.strokeRect(150, 80, 600, 320);
         
-        // 右边：热水
-        const warmGradient = this.ctx.createLinearGradient(600, 100, 600, 400);
-        warmGradient.addColorStop(0, '#fca5a5');
-        warmGradient.addColorStop(1, '#ef4444');
-        this.ctx.fillStyle = warmGradient;
-        this.ctx.fillRect(600, 100, 200, 300);
+        // 水体 - 根据温度显示颜色分层
+        // 冷水在下（蓝色），热水在上（红色）
+        const coldRatio = (30 - temp) / 30; // 0-1，温度越低越大
+        const hotRatio = temp / 30;
         
-        // 中间：实验水
-        const testY = 100 + (30 - temp) * 8; // 温度越低，下沉越多
-        const testColor = temp < 15 ? '#60a5fa' : '#f87171';
-        this.ctx.fillStyle = testColor;
-        this.ctx.beginPath();
-        this.ctx.arc(450, testY, 30, 0, Math.PI * 2);
-        this.ctx.fill();
-        
-        // 标签
-        this.ctx.fillStyle = 'white';
-        this.ctx.font = 'bold 16px Arial';
-        this.ctx.textAlign = 'center';
-        this.ctx.fillText('冷水 (5°C)', 200, 80);
-        this.ctx.fillText('热水 (25°C)', 700, 80);
-        this.ctx.fillText(`实验水 (${temp}°C)`, 450, 50);
-        
-        // 箭头指示
+        // 水体渐变
+        const waterGradient = this.ctx.createLinearGradient(150, 80, 150, 400);
         if (temp < 15) {
-            this.ctx.fillText('↓ 下沉', 450, testY + 60);
+            // 冷水模式：整体偏蓝，冷水下沉
+            waterGradient.addColorStop(0, `rgba(147, 197, 253, ${0.3 + hotRatio * 0.3})`);
+            waterGradient.addColorStop(0.5, '#3b82f6');
+            waterGradient.addColorStop(1, '#1e40af');
         } else {
-            this.ctx.fillText('↑ 上浮', 450, testY - 50);
+            // 热水模式：整体偏红，热水上浮
+            waterGradient.addColorStop(0, '#ef4444');
+            waterGradient.addColorStop(0.5, '#f87171');
+            waterGradient.addColorStop(1, `rgba(59, 130, 246, ${0.3 + coldRatio * 0.5})`);
+        }
+        this.ctx.fillStyle = waterGradient;
+        this.ctx.fillRect(152, 82, 596, 316);
+        
+        // 对流粒子动画
+        const t = this.animationFrame * 0.03;
+        for (let i = 0; i < 30; i++) {
+            const phase = (t + i * 0.3) % (Math.PI * 2);
+            let px, py;
+            
+            if (temp < 15) {
+                // 冷水下沉的对流：中间下沉，两边上升
+                const side = i % 2 === 0 ? -1 : 1;
+                px = 450 + side * (80 + (i % 5) * 30) + Math.sin(phase) * 20;
+                py = 150 + ((Math.sin(phase + (side > 0 ? 0 : Math.PI)) + 1) / 2) * 200;
+            } else {
+                // 热水上浮的对流：中间上升，两边下沉
+                const side = i % 2 === 0 ? -1 : 1;
+                px = 450 + side * (80 + (i % 5) * 30) + Math.sin(phase) * 20;
+                py = 350 - ((Math.sin(phase + (side > 0 ? Math.PI : 0)) + 1) / 2) * 200;
+            }
+            
+            // 粒子颜色
+            const isHot = py < 250;
+            this.ctx.fillStyle = isHot ? 'rgba(239, 68, 68, 0.8)' : 'rgba(59, 130, 246, 0.8)';
+            this.ctx.beginPath();
+            this.ctx.arc(px, py, 5, 0, Math.PI * 2);
+            this.ctx.fill();
         }
         
-        // 说明
+        // 温度计显示
+        this.ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        this.ctx.fillRect(780, 100, 100, 250);
+        
+        // 温度计
+        this.ctx.fillStyle = '#64748b';
+        this.ctx.fillRect(820, 120, 20, 200);
+        const mercuryHeight = (temp / 30) * 180;
+        const mercuryColor = temp < 10 ? '#3b82f6' : temp < 20 ? '#22c55e' : '#ef4444';
+        this.ctx.fillStyle = mercuryColor;
+        this.ctx.fillRect(822, 300 - mercuryHeight, 16, mercuryHeight + 18);
+        this.ctx.beginPath();
+        this.ctx.arc(830, 320, 15, 0, Math.PI * 2);
+        this.ctx.fill();
+        
+        // 温度标签
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = 'bold 18px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText(`${temp}°C`, 830, 360);
+        
+        // 标题和说明
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = 'bold 18px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('🌡️ 温度与海水密度实验', 450, 40);
+        
+        // 对流方向指示
+        this.ctx.strokeStyle = '#fbbf24';
+        this.ctx.lineWidth = 2;
+        if (temp < 15) {
+            // 冷水下沉
+            this.drawArrow(450, 150, 450, 300);
+            this.ctx.fillStyle = '#fbbf24';
+            this.ctx.font = '14px Arial';
+            this.ctx.fillText('冷水下沉', 450, 330);
+            this.drawArrow(300, 300, 300, 180);
+            this.drawArrow(600, 300, 600, 180);
+            this.ctx.fillText('周围水上升补充', 450, 170);
+        } else {
+            // 热水上浮
+            this.drawArrow(450, 300, 450, 150);
+            this.ctx.fillStyle = '#fbbf24';
+            this.ctx.font = '14px Arial';
+            this.ctx.fillText('热水上浮', 450, 140);
+            this.drawArrow(300, 150, 300, 280);
+            this.drawArrow(600, 150, 600, 280);
+            this.ctx.fillText('周围水下沉补充', 450, 310);
+        }
+        
+        // 底部说明
         this.ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        this.ctx.fillRect(50, 420, 800, 60);
+        this.ctx.fillRect(50, 420, 800, 65);
         this.ctx.fillStyle = 'white';
         this.ctx.font = '14px Arial';
-        this.ctx.fillText('观察：冷水密度大会下沉，热水密度小会上浮', 450, 445);
-        this.ctx.fillText('这种密度差异是形成深层洋流的重要原因', 450, 465);
+        this.ctx.fillText('📌 原理：水温越低，密度越大（4°C时密度最大）', 450, 442);
+        this.ctx.fillText('💡 极地海水冷却下沉，形成深层洋流，这是温盐环流的重要驱动力', 450, 465);
     }
     
     drawChapter2Salinity() {
-        // 盐度实验
-        this.ctx.fillStyle = '#0ea5e9';
+        // 盐度实验 - 展示不同盐度水体的分层
+        
+        // 背景
+        this.ctx.fillStyle = '#0f172a';
         this.ctx.fillRect(0, 0, 900, 500);
         
         const sal = this.experimentState.salinity || 35;
         
-        // 容器
-        this.ctx.fillStyle = '#0284c7';
-        this.ctx.fillRect(200, 100, 500, 300);
-        
-        // 盐分粒子
-        const saltY = 100 + (sal - 30) * 20; // 盐度越高，下沉越多
-        for (let i = 0; i < sal - 25; i++) {
-            const x = 250 + (i % 10) * 45;
-            const y = saltY + Math.floor(i / 10) * 30 + Math.sin(this.animationFrame * 0.05 + i) * 5;
-            this.ctx.fillStyle = 'rgba(255,255,255,0.8)';
-            this.ctx.beginPath();
-            this.ctx.arc(x, y, 5, 0, Math.PI * 2);
-            this.ctx.fill();
-        }
-        
-        // 标签
+        // 标题
         this.ctx.fillStyle = 'white';
         this.ctx.font = 'bold 18px Arial';
         this.ctx.textAlign = 'center';
-        this.ctx.fillText(`盐度：${sal}‰`, 450, 70);
+        this.ctx.fillText('🧂 盐度与海水密度实验', 450, 35);
         
-        if (sal > 36) {
-            this.ctx.fillText('高盐度海水 → 密度大 → 下沉', 450, 450);
-        } else if (sal < 34) {
-            this.ctx.fillText('低盐度海水 → 密度小 → 上浮', 450, 450);
-        } else {
-            this.ctx.fillText('正常盐度海水', 450, 450);
+        // 左侧：淡水容器（盐度0‰）
+        this.ctx.strokeStyle = '#64748b';
+        this.ctx.lineWidth = 3;
+        this.ctx.strokeRect(80, 100, 200, 280);
+        this.ctx.fillStyle = 'rgba(147, 197, 253, 0.6)';
+        this.ctx.fillRect(82, 102, 196, 276);
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = '14px Arial';
+        this.ctx.fillText('淡水 (0‰)', 180, 85);
+        this.ctx.fillText('密度: 1.000', 180, 400);
+        
+        // 右侧：高盐水容器（盐度40‰）
+        this.ctx.strokeRect(620, 100, 200, 280);
+        this.ctx.fillStyle = 'rgba(30, 64, 175, 0.8)';
+        this.ctx.fillRect(622, 102, 196, 276);
+        this.ctx.fillStyle = 'white';
+        this.ctx.fillText('高盐水 (40‰)', 720, 85);
+        this.ctx.fillText('密度: 1.028', 720, 400);
+        // 盐分颗粒
+        for (let i = 0; i < 30; i++) {
+            const x = 640 + (i % 6) * 30;
+            const y = 150 + Math.floor(i / 6) * 40 + Math.sin(this.animationFrame * 0.05 + i) * 3;
+            this.ctx.fillStyle = 'rgba(255,255,255,0.5)';
+            this.ctx.beginPath();
+            this.ctx.arc(x, y, 3, 0, Math.PI * 2);
+            this.ctx.fill();
         }
+        
+        // 中间：实验水滴
+        this.ctx.strokeRect(350, 100, 200, 280);
+        
+        // 根据盐度计算水滴位置（盐度越高，下沉越深）
+        // 盐度35‰是标准海水，与两侧对比
+        const normalizedSal = (sal - 30) / 10; // 0-1范围
+        const dropY = 150 + normalizedSal * 180; // 盐度高则下沉
+        
+        // 实验容器中的水（中等盐度参考）
+        const refGradient = this.ctx.createLinearGradient(350, 100, 350, 380);
+        refGradient.addColorStop(0, 'rgba(147, 197, 253, 0.5)');
+        refGradient.addColorStop(1, 'rgba(30, 64, 175, 0.5)');
+        this.ctx.fillStyle = refGradient;
+        this.ctx.fillRect(352, 102, 196, 276);
+        
+        // 实验水滴
+        const dropColor = sal > 35 ? '#1e40af' : sal < 35 ? '#93c5fd' : '#3b82f6';
+        this.ctx.fillStyle = dropColor;
+        this.ctx.beginPath();
+        this.ctx.arc(450, dropY, 25, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.strokeStyle = 'white';
+        this.ctx.lineWidth = 2;
+        this.ctx.stroke();
+        
+        // 水滴标签
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = 'bold 14px Arial';
+        this.ctx.fillText(`${sal}‰`, 450, dropY + 5);
+        
+        // 箭头指示
+        this.ctx.strokeStyle = '#fbbf24';
+        this.ctx.lineWidth = 2;
+        if (sal > 36) {
+            this.drawArrow(450, dropY + 35, 450, dropY + 80);
+            this.ctx.fillStyle = '#fbbf24';
+            this.ctx.fillText('↓ 下沉', 450, dropY + 100);
+        } else if (sal < 34) {
+            this.drawArrow(450, dropY - 35, 450, dropY - 80);
+            this.ctx.fillStyle = '#fbbf24';
+            this.ctx.fillText('↑ 上浮', 450, dropY - 90);
+        } else {
+            this.ctx.fillStyle = '#22c55e';
+            this.ctx.fillText('≈ 悬浮', 510, dropY);
+        }
+        
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = '14px Arial';
+        this.ctx.fillText('实验水', 450, 85);
+        this.ctx.fillText(`密度: ${(1 + sal * 0.0008).toFixed(3)}`, 450, 400);
+        
+        // 密度对比图
+        this.ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        this.ctx.fillRect(100, 420, 700, 70);
+        
+        // 密度条
+        const barGradient = this.ctx.createLinearGradient(150, 0, 750, 0);
+        barGradient.addColorStop(0, '#93c5fd');
+        barGradient.addColorStop(0.5, '#3b82f6');
+        barGradient.addColorStop(1, '#1e40af');
+        this.ctx.fillStyle = barGradient;
+        this.ctx.fillRect(150, 445, 600, 20);
+        
+        // 当前盐度标记
+        const markerX = 150 + (sal - 30) * 60;
+        this.ctx.fillStyle = '#fbbf24';
+        this.ctx.beginPath();
+        this.ctx.moveTo(markerX, 440);
+        this.ctx.lineTo(markerX - 8, 430);
+        this.ctx.lineTo(markerX + 8, 430);
+        this.ctx.closePath();
+        this.ctx.fill();
+        
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = '12px Arial';
+        this.ctx.textAlign = 'left';
+        this.ctx.fillText('低盐度 (30‰)', 150, 480);
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('标准海水 (35‰)', 450, 480);
+        this.ctx.textAlign = 'right';
+        this.ctx.fillText('高盐度 (40‰)', 750, 480);
     }
     
     drawChapter2Compensation() {
