@@ -164,12 +164,18 @@ class AnimalGame {
     
     generateMaps() {
         this.maps = [];
-        const colors = ['#E0F2F7', '#F4E4C1', '#2D5016', '#CD853F', '#F0F8FF'];
+        const mapConfigs = [
+            { name: '南极冰原', bgColor: '#E0F2F7' },
+            { name: '沙漠绿洲', bgColor: '#F4E4C1' },
+            { name: '竹林秘境', bgColor: '#2D5016' },
+            { name: '澳洲内陆', bgColor: '#CD853F' },
+            { name: '北极冰川', bgColor: '#F0F8FF' }
+        ];
         
         for (let i = 0; i < 5; i++) {
             const map = {
-                name: `第${i + 1}关`,
-                bgColor: colors[i % colors.length],
+                name: mapConfigs[i].name,
+                bgColor: mapConfigs[i].bgColor,
                 obstacles: []
             };
             
@@ -315,38 +321,269 @@ class AnimalGame {
         this.ctx.fillStyle = map.bgColor;
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
-        // 绘制路径
+        // 绘制路径（带纹理）
         this.ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
         this.ctx.fillRect(0, 250, this.canvas.width, 100);
         
-        // 绘制障碍物
+        // 添加路径纹理
+        this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+        this.ctx.lineWidth = 1;
+        for (let i = 0; i < this.canvas.width; i += 30) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(i, 250);
+            this.ctx.lineTo(i, 350);
+            this.ctx.stroke();
+        }
+        
+        // 绘制障碍物（像素风格）
         map.obstacles.forEach(obs => {
-            this.ctx.fillStyle = obs.completed ? '#90EE90' : '#FF6B6B';
-            this.ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
-            this.ctx.strokeStyle = '#000';
-            this.ctx.lineWidth = 2;
-            this.ctx.strokeRect(obs.x, obs.y, obs.width, obs.height);
-            
-            if (!obs.completed) {
-                this.ctx.fillStyle = '#FFF';
-                this.ctx.font = '24px Arial';
-                this.ctx.textAlign = 'center';
-                this.ctx.fillText('?', obs.x + obs.width/2, obs.y + obs.height/2 + 8);
-            }
+            this.drawPixelObstacle(obs);
         });
         
-        // 绘制终点
-        this.ctx.fillStyle = '#FFD700';
-        this.ctx.fillRect(this.canvas.width - 80, 250, 60, 100);
-        this.ctx.fillStyle = '#000';
-        this.ctx.font = '20px Arial';
-        this.ctx.textAlign = 'center';
-        this.ctx.fillText('终点', this.canvas.width - 50, 305);
+        // 绘制终点（像素风格）
+        this.drawPixelFinish();
         
         // 绘制玩家
         const animal = this.animals[this.currentAnimal];
         this.ctx.font = '40px Arial';
+        this.ctx.textAlign = 'center';
         this.ctx.fillText(animal.emoji, this.player.x + 20, this.player.y + 30);
+    }
+    
+    drawPixelObstacle(obs) {
+        const x = obs.x;
+        const y = obs.y;
+        const w = obs.width;
+        const h = obs.height;
+        
+        if (obs.completed) {
+            // 已完成 - 绿色勾选标记
+            this.ctx.fillStyle = '#90EE90';
+            this.ctx.fillRect(x, y, w, h);
+            this.ctx.strokeStyle = '#228B22';
+            this.ctx.lineWidth = 3;
+            this.ctx.strokeRect(x, y, w, h);
+            
+            // 绘制勾选符号
+            this.ctx.strokeStyle = '#228B22';
+            this.ctx.lineWidth = 4;
+            this.ctx.beginPath();
+            this.ctx.moveTo(x + w * 0.2, y + h * 0.5);
+            this.ctx.lineTo(x + w * 0.4, y + h * 0.7);
+            this.ctx.lineTo(x + w * 0.8, y + h * 0.3);
+            this.ctx.stroke();
+        } else {
+            // 未完成 - 根据地图类型绘制不同风格
+            const mapIndex = this.currentMap;
+            
+            if (mapIndex === 0) {
+                // 南极冰川
+                this.drawIceBlock(x, y, w, h);
+            } else if (mapIndex === 1) {
+                // 沙漠仙人掌
+                this.drawCactus(x, y, w, h);
+            } else if (mapIndex === 2) {
+                // 竹林
+                this.drawBamboo(x, y, w, h);
+            } else if (mapIndex === 3) {
+                // 澳洲桉树
+                this.drawEucalyptus(x, y, w, h);
+            } else {
+                // 北极冰块
+                this.drawArcticIce(x, y, w, h);
+            }
+            
+            // 添加问号标记
+            this.ctx.fillStyle = '#FFF';
+            this.ctx.strokeStyle = '#000';
+            this.ctx.lineWidth = 2;
+            this.ctx.font = 'bold 28px Arial';
+            this.ctx.textAlign = 'center';
+            this.ctx.strokeText('?', x + w/2, y + h/2 + 10);
+            this.ctx.fillText('?', x + w/2, y + h/2 + 10);
+        }
+    }
+    
+    drawIceBlock(x, y, w, h) {
+        // 冰块主体
+        this.ctx.fillStyle = '#B0E0E6';
+        this.ctx.fillRect(x, y, w, h);
+        
+        // 冰块高光
+        this.ctx.fillStyle = '#E0F8FF';
+        this.ctx.fillRect(x + 5, y + 5, w - 10, h/3);
+        
+        // 冰块边框
+        this.ctx.strokeStyle = '#4682B4';
+        this.ctx.lineWidth = 3;
+        this.ctx.strokeRect(x, y, w, h);
+        
+        // 冰晶纹理
+        this.ctx.strokeStyle = '#87CEEB';
+        this.ctx.lineWidth = 1;
+        this.ctx.beginPath();
+        this.ctx.moveTo(x + w/4, y);
+        this.ctx.lineTo(x + w/4, y + h);
+        this.ctx.moveTo(x + w*3/4, y);
+        this.ctx.lineTo(x + w*3/4, y + h);
+        this.ctx.stroke();
+    }
+    
+    drawCactus(x, y, w, h) {
+        // 仙人掌主体
+        this.ctx.fillStyle = '#228B22';
+        this.ctx.fillRect(x + w/4, y, w/2, h);
+        
+        // 仙人掌手臂
+        this.ctx.fillRect(x, y + h/3, w/3, h/4);
+        this.ctx.fillRect(x + w*2/3, y + h/2, w/3, h/4);
+        
+        // 边框
+        this.ctx.strokeStyle = '#006400';
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(x + w/4, y, w/2, h);
+        this.ctx.strokeRect(x, y + h/3, w/3, h/4);
+        this.ctx.strokeRect(x + w*2/3, y + h/2, w/3, h/4);
+        
+        // 刺
+        this.ctx.strokeStyle = '#8B4513';
+        this.ctx.lineWidth = 1;
+        for (let i = 0; i < 5; i++) {
+            const py = y + (i + 1) * h/6;
+            this.ctx.beginPath();
+            this.ctx.moveTo(x + w/4, py);
+            this.ctx.lineTo(x + w/4 - 5, py);
+            this.ctx.moveTo(x + w*3/4, py);
+            this.ctx.lineTo(x + w*3/4 + 5, py);
+            this.ctx.stroke();
+        }
+    }
+    
+    drawBamboo(x, y, w, h) {
+        // 竹子主干
+        this.ctx.fillStyle = '#90EE90';
+        this.ctx.fillRect(x + w/3, y, w/3, h);
+        
+        // 竹节
+        this.ctx.strokeStyle = '#228B22';
+        this.ctx.lineWidth = 3;
+        for (let i = 1; i < 4; i++) {
+            const nodeY = y + i * h/4;
+            this.ctx.beginPath();
+            this.ctx.moveTo(x + w/3, nodeY);
+            this.ctx.lineTo(x + w*2/3, nodeY);
+            this.ctx.stroke();
+        }
+        
+        // 竹叶
+        this.ctx.fillStyle = '#7CFC00';
+        this.ctx.beginPath();
+        this.ctx.moveTo(x + w/2, y);
+        this.ctx.lineTo(x, y + h/4);
+        this.ctx.lineTo(x + w/3, y + h/6);
+        this.ctx.fill();
+        
+        this.ctx.beginPath();
+        this.ctx.moveTo(x + w/2, y);
+        this.ctx.lineTo(x + w, y + h/4);
+        this.ctx.lineTo(x + w*2/3, y + h/6);
+        this.ctx.fill();
+        
+        // 边框
+        this.ctx.strokeStyle = '#228B22';
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(x + w/3, y, w/3, h);
+    }
+    
+    drawEucalyptus(x, y, w, h) {
+        // 树干
+        this.ctx.fillStyle = '#8B7355';
+        this.ctx.fillRect(x + w/3, y + h/3, w/3, h*2/3);
+        
+        // 树冠
+        this.ctx.fillStyle = '#9ACD32';
+        this.ctx.beginPath();
+        this.ctx.arc(x + w/2, y + h/3, w/2, 0, Math.PI * 2);
+        this.ctx.fill();
+        
+        // 树冠细节
+        this.ctx.fillStyle = '#7CFC00';
+        this.ctx.beginPath();
+        this.ctx.arc(x + w/3, y + h/4, w/4, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.beginPath();
+        this.ctx.arc(x + w*2/3, y + h/4, w/4, 0, Math.PI * 2);
+        this.ctx.fill();
+        
+        // 边框
+        this.ctx.strokeStyle = '#556B2F';
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(x + w/3, y + h/3, w/3, h*2/3);
+        this.ctx.beginPath();
+        this.ctx.arc(x + w/2, y + h/3, w/2, 0, Math.PI * 2);
+        this.ctx.stroke();
+    }
+    
+    drawArcticIce(x, y, w, h) {
+        // 冰块主体（更白）
+        this.ctx.fillStyle = '#F0F8FF';
+        this.ctx.fillRect(x, y, w, h);
+        
+        // 冰块阴影
+        this.ctx.fillStyle = '#E0F0FF';
+        this.ctx.fillRect(x, y + h*2/3, w, h/3);
+        
+        // 冰块高光
+        this.ctx.fillStyle = '#FFFFFF';
+        this.ctx.fillRect(x + 5, y + 5, w/3, h/4);
+        
+        // 边框
+        this.ctx.strokeStyle = '#B0C4DE';
+        this.ctx.lineWidth = 3;
+        this.ctx.strokeRect(x, y, w, h);
+        
+        // 冰晶效果
+        this.ctx.strokeStyle = '#ADD8E6';
+        this.ctx.lineWidth = 1;
+        this.ctx.beginPath();
+        this.ctx.moveTo(x, y);
+        this.ctx.lineTo(x + w, y + h);
+        this.ctx.moveTo(x + w, y);
+        this.ctx.lineTo(x, y + h);
+        this.ctx.stroke();
+    }
+    
+    drawPixelFinish() {
+        const x = this.canvas.width - 80;
+        const y = 250;
+        
+        // 终点旗帜杆
+        this.ctx.fillStyle = '#8B4513';
+        this.ctx.fillRect(x + 25, y, 10, 100);
+        
+        // 旗帜
+        this.ctx.fillStyle = '#FFD700';
+        this.ctx.beginPath();
+        this.ctx.moveTo(x + 35, y + 10);
+        this.ctx.lineTo(x + 65, y + 25);
+        this.ctx.lineTo(x + 35, y + 40);
+        this.ctx.fill();
+        
+        // 旗帜边框
+        this.ctx.strokeStyle = '#FF8C00';
+        this.ctx.lineWidth = 2;
+        this.ctx.beginPath();
+        this.ctx.moveTo(x + 35, y + 10);
+        this.ctx.lineTo(x + 65, y + 25);
+        this.ctx.lineTo(x + 35, y + 40);
+        this.ctx.closePath();
+        this.ctx.stroke();
+        
+        // 文字
+        this.ctx.fillStyle = '#000';
+        this.ctx.font = 'bold 16px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('终点', x + 40, y + 70);
     }
     
     updateUI() {
