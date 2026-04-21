@@ -2315,26 +2315,27 @@ class OceanExploreSystem {
         this.ctx.fillStyle = 'rgba(236, 72, 153, 0.1)';
         this.ctx.fillRect(0, 250, 900, 250);
         
-        // 南太平洋环流（逆时针）
+        // 南太平洋环流（逆时针方向修正）
+        // 逆时针流向：西风漂流 → 东澳大利亚暖流 → 南赤道暖流 → 秘鲁寒流 → 西风漂流
         this.ctx.strokeStyle = '#3b82f6';
         this.ctx.lineWidth = 4;
-        this.drawCurvedArrow(700, 350, 780, 400, 750, 450, true); // 秘鲁寒流
+        this.drawCurvedArrow(700, 350, 620, 340, 550, 350, true); // 西风漂流 (向东)
         this.ctx.strokeStyle = '#ef4444';
-        this.drawCurvedArrow(750, 450, 650, 470, 550, 450, true); // 南赤道暖流
+        this.drawCurvedArrow(550, 350, 500, 400, 550, 450, true); // 东澳大利亚暖流 (向南)
         this.ctx.strokeStyle = '#ef4444';
-        this.drawCurvedArrow(550, 450, 500, 400, 550, 350, true); // 东澳大利亚暖流
+        this.drawCurvedArrow(550, 450, 650, 470, 750, 450, true); // 南赤道暖流 (向西)
         this.ctx.strokeStyle = '#3b82f6';
-        this.drawCurvedArrow(550, 350, 620, 340, 700, 350, true); // 西风漂流
+        this.drawCurvedArrow(750, 450, 780, 400, 700, 350, true); // 秘鲁寒流 (向北)
         
-        // 南大西洋环流
+        // 南大西洋环流（逆时针方向修正）
         this.ctx.strokeStyle = '#3b82f6';
-        this.drawCurvedArrow(300, 350, 280, 400, 250, 450, true);
+        this.drawCurvedArrow(150, 350, 220, 340, 300, 350, true); // 西风漂流 (向东)
         this.ctx.strokeStyle = '#ef4444';
-        this.drawCurvedArrow(250, 450, 180, 470, 120, 450, true);
+        this.drawCurvedArrow(300, 350, 320, 400, 250, 450, true); // 巴西暖流 (向南)
         this.ctx.strokeStyle = '#ef4444';
-        this.drawCurvedArrow(120, 450, 100, 400, 150, 350, true);
+        this.drawCurvedArrow(250, 450, 180, 470, 120, 450, true); // 南赤道暖流 (向西)
         this.ctx.strokeStyle = '#3b82f6';
-        this.drawCurvedArrow(150, 350, 220, 340, 300, 350, true);
+        this.drawCurvedArrow(120, 450, 100, 400, 150, 350, true); // 本格拉寒流 (向北)
         
         // 标注
         this.ctx.fillStyle = 'white';
